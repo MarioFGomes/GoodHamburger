@@ -50,6 +50,16 @@ public class SeedData {
         };
 
         modelBuilder.Entity<SideDishes>().HasData(sideDishes1, sideDishes2);
+
+
+        var Customer1 = new Customer {
+          FirstName="Lucas",
+          LastName="Silva",
+          Address="Rio de Janeiro",
+          Phone="+55 21 97534-2254"
+        };
+
+        modelBuilder.Entity<Customer>().HasData(Customer1);
     }
 
 }

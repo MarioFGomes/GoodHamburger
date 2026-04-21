@@ -8,12 +8,12 @@ using System.Threading.Tasks;
 
 namespace GoodHamburger.Domain.Entities; 
 public class OrderItem: EntityBase {
-    public Guid Id { get; set; }
     public Guid OrderId { get; set; }
     public Guid MenuId { get; set; }
     public int Qtd { get; private set; }
     public decimal UnitPrice { get; set; }
     public virtual Order Order { get; set; }
+    public virtual Menu Menu { get; set; }
 
     private readonly List<OrderSideDishes> _OrderSideDishes = new();
     public IReadOnlyCollection<OrderSideDishes> OrderSideDishes => _OrderSideDishes;

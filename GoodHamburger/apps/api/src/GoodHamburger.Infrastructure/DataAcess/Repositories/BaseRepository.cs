@@ -17,10 +17,10 @@ public class BaseRepository<TEntity> : IBaseRepository<TEntity> where TEntity : 
         _logger = logger;
     }
 
-    public async Task AddOneAsync(TEntity entity) {
-        await _dbSet.AddAsync(entity);
+    public async Task AddOneAsync(TEntity entity, CancellationToken cancellationToken = default) {
+        
         try {
-            await _context.SaveChangesAsync();
+            await _dbSet.AddAsync(entity, cancellationToken);
             _logger.LogInformation($"Entidade {typeof(TEntity).Name} salva com sucesso. Id: {entity.Id}");
         } catch (System.Exception ex) {
             _logger.LogError(ex, $"Erro ao salvar entidade {typeof(TEntity).Name}.");
@@ -28,110 +28,86 @@ public class BaseRepository<TEntity> : IBaseRepository<TEntity> where TEntity : 
         }
     }
 
-    public async Task AddManyAsync(List<TEntity> entity) {
-        await _dbSet.AddRangeAsync(entity);
+    public async Task AddManyAsync(List<TEntity> entity, CancellationToken cancellationToken = default) {
+       
         try {
-            await _context.SaveChangesAsync();
+            await _dbSet.AddRangeAsync(entity, cancellationToken);
         } catch (System.Exception ex) {
             _logger.LogError(ex, $"Erro ao salvar entidade {typeof(TEntity).Name}.");
             throw;
         }
     }
 
-    public async Task DeleteAsync(Expression<Func<TEntity, bool>> filterExpression) {
+    public async Task DeleteAsync(Expression<Func<TEntity, bool>> filterExpression, CancellationToken cancellationToken = default) {
 
-        var entities = await _dbSet.Where(filterExpression).ToListAsync();
+        var entities = await _dbSet.Where(filterExpression).ToListAsync(cancellationToken);
 
         foreach (var entity in entities) {
             _dbSet.Remove(entity);
         }
-        await _context.SaveChangesAsync();
+       
     }
 
-    public async Task DeleteAsync(Guid id) {
-        
-        var entity = await _dbSet.FindAsync(id);
+    public async Task<bool> DeleteOneAsync(Guid id, CancellationToken cancellationToken = default) {
+        var entity = await _dbSet.FindAsync(id, cancellationToken);
+        if (entity == null) {
+            _logger.LogWarning("Entidade {EntityType} com Id {Id} não encontrada para deletar.",
+                typeof(TEntity).Name, id);
+            return false;
+        }
+
         _dbSet.Remove(entity);
-        await _context.SaveChangesAsync();
+        return true;
     }
 
-    public async Task ReplaceOneAsync(Expression<Func<TEntity, bool>> filterExpression, TEntity entity) {
-        var existingEntity = await _dbSet.FirstOrDefaultAsync(filterExpression);
-        if (existingEntity != null) {
-            existingEntity.UpdatedAt = DateTime.UtcNow;
+        public async Task<bool> ReplaceOneAsync(Expression<Func<TEntity, bool>> filterExpression, TEntity entity, CancellationToken cancellationToken = default) {
+        
+        var existingEntity = await _dbSet.FirstOrDefaultAsync(filterExpression, cancellationToken);
+       
+        if (existingEntity is null) return false;
+            
             _context.Entry(existingEntity).CurrentValues.SetValues(entity);
-
-        }
-        await _context.SaveChangesAsync();
+            existingEntity.UpdatedAt = DateTime.UtcNow;
+             _context.Entry(existingEntity).Property(nameof(EntityBase.Id)).IsModified = false;
+          return true;
     }
 
-    public async Task ReplaceManyAsync(List<TEntity> entities, Func<TEntity, object> keySelector) {
-        var keys = entities.Select(keySelector).ToList();
-        var existingEntities = await _dbSet.Where(e => keys.Contains(keySelector(e))).ToListAsync();
-
-        foreach (var entity in entities) {
-            var key = keySelector(entity);
-            var existing = existingEntities.FirstOrDefault(e => keySelector(e).Equals(key));
-
-            if (existing != null) {
-                _context.Entry(existing).CurrentValues.SetValues(entity);
-            }
-        }
-
-        await _context.SaveChangesAsync();
+    public async Task<TEntity?> GetOneAsync(Expression<Func<TEntity, bool>> filterExpression, CancellationToken cancellationToken = default) {
+        return await _dbSet.FirstOrDefaultAsync(filterExpression, cancellationToken);
     }
 
-    public async Task<TEntity> GetOneAsync(Expression<Func<TEntity, bool>> filterExpression) {
-        return await _dbSet.FirstOrDefaultAsync(filterExpression);
+    public async Task<TEntity?> GetOneIncludingInactiveAsync(Expression<Func<TEntity, bool>> filterExpression, CancellationToken cancellationToken = default) {
+        return await _dbSet.IgnoreQueryFilters().FirstOrDefaultAsync(filterExpression, cancellationToken);
     }
 
-    public async Task<TEntity> GetOneIncludingInactiveAsync(Expression<Func<TEntity, bool>> filterExpression) {
-        return await _dbSet.IgnoreQueryFilters().FirstOrDefaultAsync(filterExpression);
-    }
-
-    public async Task<IEnumerable<TEntity>> GetAllAsync(int page = 1, int pageSize = 10) {
+    public async Task<IEnumerable<TEntity>> GetAllAsync(int page = 1, int pageSize = 10, CancellationToken cancellationToken = default) {
         return await _dbSet
             .Skip((page - 1) * pageSize)
             .Take(pageSize)
-            .ToListAsync();
+            .ToListAsync(cancellationToken);
     }
 
-    public async Task<IEnumerable<TEntity>> GetAllAsync() {
-        return await _dbSet.ToListAsync();
+    public async Task<IEnumerable<TEntity>> GetAllAsync(CancellationToken cancellationToken = default) {
+        return await _dbSet.ToListAsync(cancellationToken);
     }
 
-    public async Task<IEnumerable<TEntity>> GetAllIncludingInactiveAsync() {
-        return await _dbSet.IgnoreQueryFilters().ToListAsync();
+    public async Task<IEnumerable<TEntity>> GetAllIncludingInactiveAsync(CancellationToken cancellationToken = default) {
+        return await _dbSet.IgnoreQueryFilters().ToListAsync(cancellationToken);
     }
 
-    public async Task<int> CountAsync() {
-        return await _dbSet.CountAsync();
+    public async Task<int> CountAsync(CancellationToken cancellationToken = default) {
+        return await _dbSet.CountAsync(cancellationToken);
     }
 
-    public async Task<int> CountAsync(Expression<Func<TEntity, bool>> filterExpression) {
-        return await _dbSet.CountAsync(filterExpression);
+    public async Task<int> CountAsync(Expression<Func<TEntity, bool>> filterExpression, CancellationToken cancellationToken = default) {
+        return await _dbSet.CountAsync(filterExpression, cancellationToken);
     }
 
     public IQueryable<TEntity> GetQueryable() {
         return _dbSet.AsQueryable();
     }
 
-    public async Task<bool> AnyAsync(Expression<Func<TEntity, bool>> filterExpression) {
-        return await _dbSet.AnyAsync(filterExpression);
-    }
-
-    public void BeginTransaction() {
-        if (_context.Database.CurrentTransaction is null)
-            _context.Database.BeginTransaction();
-    }
-
-    public void CommitTransaction() {
-        if (_context.Database.CurrentTransaction is not null)
-            _context.Database.CommitTransaction();
-    }
-
-    public void RollbackTransaction() {
-        if (_context.Database.CurrentTransaction is not null)
-            _context.Database.RollbackTransaction();
+    public async Task<bool> AnyAsync(Expression<Func<TEntity, bool>> filterExpression, CancellationToken cancellationToken = default) {
+        return await _dbSet.AnyAsync(filterExpression, cancellationToken);
     }
 }
