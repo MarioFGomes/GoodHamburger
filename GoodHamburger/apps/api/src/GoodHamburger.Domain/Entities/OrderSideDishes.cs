@@ -2,7 +2,7 @@
 using GoodHamburger.Domain.Exceptions;
 
 namespace GoodHamburger.Domain.Entities; 
-public class OrderSideDishes {
+public class OrderSideDishes: EntityBase {
     public Guid Id { get; set; }
     public Guid OrderItemId { get; set; }
     public Guid SideDishesId { get; set; }

@@ -7,7 +7,7 @@ using System.Text;
 using System.Threading.Tasks;
 
 namespace GoodHamburger.Domain.Entities; 
-public class OrderItem {
+public class OrderItem: EntityBase {
     public Guid Id { get; set; }
     public Guid OrderId { get; set; }
     public Guid MenuId { get; set; }
