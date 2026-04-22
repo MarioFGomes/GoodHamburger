@@ -80,7 +80,7 @@ public class BaseRepository<TEntity> : IBaseRepository<TEntity> where TEntity : 
         return await _dbSet.IgnoreQueryFilters().FirstOrDefaultAsync(filterExpression, cancellationToken);
     }
 
-    public async Task<IEnumerable<TEntity>> GetAllAsync(int page = 1, int pageSize = 10, CancellationToken cancellationToken = default) {
+    public async Task<IEnumerable<TEntity>> GetAllAsync( CancellationToken cancellationToken = default, int page = 1, int pageSize = 10) {
         return await _dbSet
             .Skip((page - 1) * pageSize)
             .Take(pageSize)

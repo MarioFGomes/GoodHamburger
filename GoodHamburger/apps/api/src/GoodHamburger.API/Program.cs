@@ -1,4 +1,9 @@
 
+using FluentValidation;
+using GoodHamburger.API.Filters;
+using GoodHamburger.Application;
+using GoodHamburger.Infrastructure;
+
 namespace GoodHamburger.API {
     public class Program {
         public static void Main(string[] args) {
@@ -6,6 +11,13 @@ namespace GoodHamburger.API {
 
             // Add services to the container.
             builder.Services.AddAuthorization();
+            builder.Services
+                   .AddInfrastructure(builder.Configuration)
+                   .AddApplication();
+
+            builder.Services.AddControllers(options => {
+                options.Filters.Add<ValidationFilter>();
+            });
 
             // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
             builder.Services.AddEndpointsApiExplorer();
