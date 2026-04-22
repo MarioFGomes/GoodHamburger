@@ -7,11 +7,16 @@ namespace GoodHamburger.Application;
 public static class ApplicationBootstrapper {
 
     public static IServiceCollection AddApplication(this IServiceCollection services) {
-        
-        services.AddScoped<ICreateCustomerUseCase, CreateCustomerUseCase>();
-      
 
-       services.AddValidatorsFromAssembly(Assembly.GetExecutingAssembly());
+        services.AddScoped<ICreateCustomerUseCase, CreateCustomerUseCase>()
+                .AddScoped<IGetCustomerByIdUseCase, GetCustomerByIdUseCase>()
+                .AddScoped<IGetAllCustomersUseCase, GetAllCustomersUseCase>()
+                .AddScoped<IUpdateCustomerUseCase, UpdateCustomerUseCase>()
+                .AddScoped<IDeleteCustomerUseCase, DeleteCustomerUseCase>();
+
+
+
+        services.AddValidatorsFromAssembly(Assembly.GetExecutingAssembly());
 
         return services;
     }
