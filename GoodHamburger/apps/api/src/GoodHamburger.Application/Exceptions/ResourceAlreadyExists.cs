@@ -7,5 +7,5 @@ using System.Threading.Tasks;
 namespace GoodHamburger.Application.Exceptions; 
 public class ResourceAlreadyExists:Exception {
 public ResourceAlreadyExists(string resource, object id)
-    : base($"{resource} Already Exists ") { } 
+    : base($"{resource} '{id}' Already Exists ") { } 
 }

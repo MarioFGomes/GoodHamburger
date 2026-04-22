@@ -37,6 +37,7 @@ public static class CustomerMapper {
             LastName = CustomerRequest.LastName,
             Phone = CustomerRequest.Phone,
             Email = CustomerRequest.Email,
+            Address = CustomerRequest.Address,
         };
     }
 }
