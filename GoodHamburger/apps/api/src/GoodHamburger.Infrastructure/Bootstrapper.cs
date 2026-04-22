@@ -30,7 +30,7 @@ public static class Bootstrapper {
 
     private static void AddContext(IServiceCollection services, IConfiguration configurationManager) {
 
-        var useInMemory = configurationManager.GetValue<bool>("Configurations:InMemoryDataBase");
+        bool.TryParse(configurationManager["Configurations:InMemoryDataBase"], out var useInMemory);
 
         if (useInMemory) {
             services.AddDbContext<GoodHamburgerContext>(options => options
