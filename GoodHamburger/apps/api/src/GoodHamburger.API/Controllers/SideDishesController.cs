@@ -37,7 +37,7 @@ public class SideDishesController : ControllerEntinty {
         return CreatedAtAction(nameof(GetById), new { id = response.Id }, response);
     }
 
-    [HttpGet("{id:guid}", Name = nameof(GetById))]
+    [HttpGet("{id:guid}", Name = "SideDishes_GetById")]
     [ProducesResponseType(typeof(SideDishesResponse), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
     public async Task<IActionResult> GetById([FromRoute] Guid id, CancellationToken ct) {

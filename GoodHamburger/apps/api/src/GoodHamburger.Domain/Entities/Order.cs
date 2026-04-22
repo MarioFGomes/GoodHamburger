@@ -16,6 +16,19 @@ public class Order : EntityBase {
 
     protected Order() { }
 
+    public Order(Guid customerId, int orderNumber) {
+        CustomerID = customerId;
+        OrderNumber = orderNumber;
+    }
+
+    public void AddSideDish(Guid sideDishId, SideDishCategory category, decimal unitPrice) {
+        EnsurePending();
+        if (!_OrderItems.Any())
+            throw new DomainException("Adicione um sanduíche antes de adicionar acompanhamentos.");
+        _OrderItems.First().AddSideDish(sideDishId, category, unitPrice);
+        RecalculateTotals();
+    }
+
     public void AddSandwich(Guid menuId, decimal unitPrice) {
        
         EnsurePending();

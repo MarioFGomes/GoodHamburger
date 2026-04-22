@@ -1,5 +1,6 @@
 ﻿using GoodHamburger.Application.UseCases.Customer;
 using GoodHamburger.Application.UseCases.Menu;
+using GoodHamburger.Application.UseCases.Order;
 using GoodHamburger.Application.UseCases.SideDishes;
 using Microsoft.Extensions.DependencyInjection;
 using FluentValidation;
@@ -21,6 +22,13 @@ public static class ApplicationBootstrapper {
                 .AddScoped<IGetAllMenusUseCase, GetAllMenusUseCase>()
                 .AddScoped<IUpdateMenuUseCase, UpdateMenuUseCase>()
                 .AddScoped<IDeleteMenuUseCase, DeleteMenuUseCase>();
+
+        services.AddScoped<ICreateOrderUseCase, CreateOrderUseCase>()
+                .AddScoped<IGetOrderByIdUseCase, GetOrderByIdUseCase>()
+                .AddScoped<IGetAllOrdersUseCase, GetAllOrdersUseCase>()
+                .AddScoped<IConfirmOrderUseCase, ConfirmOrderUseCase>()
+                .AddScoped<ICancelOrderUseCase, CancelOrderUseCase>()
+                .AddScoped<IDeleteOrderUseCase, DeleteOrderUseCase>();
 
         services.AddScoped<ICreateSideDishesUseCase, CreateSideDishesUseCase>()
                 .AddScoped<IGetSideDishByIdUseCase, GetSideDishByIdUseCase>()
