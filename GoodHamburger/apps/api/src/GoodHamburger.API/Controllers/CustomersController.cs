@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace GoodHamburger.API.Controllers;
 
+[ApiVersion("1.0")]
 [Route("api/v{version:apiVersion}/customers")]
 public class CustomersController : ControllerEntinty {
 

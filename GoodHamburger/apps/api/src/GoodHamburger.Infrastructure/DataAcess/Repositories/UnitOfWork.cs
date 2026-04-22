@@ -10,8 +10,11 @@ public class UnitOfWork: IUnitOfWork {
 
     public UnitOfWork(DbContext context) => _context = context;
 
+    private bool SupportsTransactions => _context.Database.ProviderName != "Microsoft.EntityFrameworkCore.InMemory";
+
     public async Task BeginTransactionAsync(CancellationToken ct = default) {
-        _transaction ??= await _context.Database.BeginTransactionAsync(ct);
+        if (SupportsTransactions)
+            _transaction ??= await _context.Database.BeginTransactionAsync(ct);
     }
 
     public async Task CommitAsync(CancellationToken ct = default) {

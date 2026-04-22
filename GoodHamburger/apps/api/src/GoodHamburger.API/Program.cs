@@ -1,7 +1,5 @@
-
-using Asp.Versioning;
-using FluentValidation;
-using GoodHamburger.API.Filters;
+using Asp.Versioning.ApiExplorer;
+using GoodHamburger.API.Middleware;
 using GoodHamburger.Application;
 using GoodHamburger.Infrastructure;
 
@@ -16,39 +14,25 @@ namespace GoodHamburger.API {
                    .AddInfrastructure(builder.Configuration)
                    .AddApplication();
 
-            builder.Services.AddControllers(options => {
-                options.Filters.Add<ValidationFilter>();
-            });
-
-            builder.Services.AddApiVersioning(options => {
-
-                options.DefaultApiVersion = new ApiVersion(1, 0);
-                options.AssumeDefaultVersionWhenUnspecified = true;
-                options.ReportApiVersions = true;
-                options.ApiVersionReader = new UrlSegmentApiVersionReader();
-                
-            }).AddApiExplorer(options =>
-            {
-                options.GroupNameFormat = "'v'VVV";
-                options.SubstituteApiVersionInUrl = true; 
-            });
-
             // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
             builder.Services.AddEndpointsApiExplorer();
-            builder.Services.AddSwaggerGen();
+            builder.Services.AddApiLayer();
+            builder.Services.AddSwaggerConfiguration();
 
             var app = builder.Build();
+
+            app.UseMiddleware<GlobalExceptionHandler>();
 
             // Configure the HTTP request pipeline.
             if (app.Environment.IsDevelopment()) {
                 app.UseSwagger();
                 app.UseSwaggerUI(options => {
+                    var provider = app.Services.GetRequiredService<IApiVersionDescriptionProvider>();
 
-                    var descriptions = app.DescribeApiVersions();
-                    foreach (var description in descriptions) {
+                    foreach (var description in provider.ApiVersionDescriptions) {
                         options.SwaggerEndpoint(
                             $"/swagger/{description.GroupName}/swagger.json",
-                            description.GroupName.ToUpperInvariant());
+                            $"Good Hamburger API {description.GroupName.ToUpperInvariant()}");
                     }
                 });
             }
@@ -56,6 +40,10 @@ namespace GoodHamburger.API {
             app.UseHttpsRedirection();
 
             app.UseAuthorization();
+
+            app.UseCors(ApiBootstrapper.CorsPolicyName);
+
+            app.MapControllers();
 
             app.Run();
         }

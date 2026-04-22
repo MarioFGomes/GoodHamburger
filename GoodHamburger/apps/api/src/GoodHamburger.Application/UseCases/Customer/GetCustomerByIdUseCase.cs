@@ -13,7 +13,7 @@ public class GetCustomerByIdUseCase : IGetCustomerByIdUseCase {
 
     public async Task<CustomerResponse> ExecuteAsync(Guid id, CancellationToken ct = default) {
         var customer = await _customerRepo.GetOneAsync(i => i.Id == id,ct);
-        if (customer is not null) throw new NotFoundException("Customer",customer.Id);
+        if (customer is null) throw new NotFoundException("Customer",id);
         return customer.ToResponse();
     }
 }
