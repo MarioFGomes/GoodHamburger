@@ -3,9 +3,59 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.6.33815.320
 MinimumVisualStudioVersion = 10.0.40219.1
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "apps", "apps", "{BB1E25C5-C635-4F45-9975-A7D7C44C27D1}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "api", "api", "{9A3DD4E1-F8ED-412F-AA85-36118B27402C}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "web", "web", "{471C48A6-5347-46BA-9808-A510160A7436}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{8CEE416A-9115-4C61-B9AA-FA4772598B25}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{AD59907B-3D65-4D80-AA2E-231A7AFA5876}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GoodHamburger.Domain", "apps\api\src\GoodHamburger.Domain\GoodHamburger.Domain.csproj", "{F76FDBEA-2C4A-4240-9D6B-9A91C534D496}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GoodHamburger.Infrastructure", "apps\api\src\GoodHamburger.Infrastructure\GoodHamburger.Infrastructure.csproj", "{7DEE529E-4BA5-4EE6-8E5C-225BA035A94B}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GoodHamburger.Application", "apps\api\src\GoodHamburger.Application\GoodHamburger.Application.csproj", "{61957D4C-3DBF-4876-A3B0-3BBFE3FC73AC}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GoodHamburger.API", "apps\api\src\GoodHamburger.API\GoodHamburger.API.csproj", "{D17617C0-5AD8-48A5-8C1D-275B41BECFB3}"
+EndProject
 Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{F76FDBEA-2C4A-4240-9D6B-9A91C534D496}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F76FDBEA-2C4A-4240-9D6B-9A91C534D496}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F76FDBEA-2C4A-4240-9D6B-9A91C534D496}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F76FDBEA-2C4A-4240-9D6B-9A91C534D496}.Release|Any CPU.Build.0 = Release|Any CPU
+		{7DEE529E-4BA5-4EE6-8E5C-225BA035A94B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{7DEE529E-4BA5-4EE6-8E5C-225BA035A94B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{7DEE529E-4BA5-4EE6-8E5C-225BA035A94B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{7DEE529E-4BA5-4EE6-8E5C-225BA035A94B}.Release|Any CPU.Build.0 = Release|Any CPU
+		{61957D4C-3DBF-4876-A3B0-3BBFE3FC73AC}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{61957D4C-3DBF-4876-A3B0-3BBFE3FC73AC}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{61957D4C-3DBF-4876-A3B0-3BBFE3FC73AC}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{61957D4C-3DBF-4876-A3B0-3BBFE3FC73AC}.Release|Any CPU.Build.0 = Release|Any CPU
+		{D17617C0-5AD8-48A5-8C1D-275B41BECFB3}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D17617C0-5AD8-48A5-8C1D-275B41BECFB3}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D17617C0-5AD8-48A5-8C1D-275B41BECFB3}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D17617C0-5AD8-48A5-8C1D-275B41BECFB3}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{9A3DD4E1-F8ED-412F-AA85-36118B27402C} = {BB1E25C5-C635-4F45-9975-A7D7C44C27D1}
+		{471C48A6-5347-46BA-9808-A510160A7436} = {BB1E25C5-C635-4F45-9975-A7D7C44C27D1}
+		{8CEE416A-9115-4C61-B9AA-FA4772598B25} = {9A3DD4E1-F8ED-412F-AA85-36118B27402C}
+		{AD59907B-3D65-4D80-AA2E-231A7AFA5876} = {471C48A6-5347-46BA-9808-A510160A7436}
+		{F76FDBEA-2C4A-4240-9D6B-9A91C534D496} = {8CEE416A-9115-4C61-B9AA-FA4772598B25}
+		{7DEE529E-4BA5-4EE6-8E5C-225BA035A94B} = {8CEE416A-9115-4C61-B9AA-FA4772598B25}
+		{61957D4C-3DBF-4876-A3B0-3BBFE3FC73AC} = {8CEE416A-9115-4C61-B9AA-FA4772598B25}
+		{D17617C0-5AD8-48A5-8C1D-275B41BECFB3} = {8CEE416A-9115-4C61-B9AA-FA4772598B25}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {C3A648F6-3423-46FB-B32F-74992DD7CFA4}
