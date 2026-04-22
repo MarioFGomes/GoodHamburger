@@ -1,7 +1,10 @@
-﻿using GoodHamburger.Domain.Enum;
+using GoodHamburger.Domain.Enum;
+using System.Text.Json.Serialization;
 
-namespace GoodHamburger.Domain.Entities; 
-public class SideDishes: EntityBase {
+namespace GoodHamburger.Application.DTOs.Requests;
+public class UpdateSideDishesRequest {
+    [JsonIgnore]
+    public Guid Id { get; set; }
     public string? Name { get; set; }
     public string? Description { get; set; }
     public decimal? Price { get; set; }
