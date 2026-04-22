@@ -23,12 +23,12 @@ public class MenuConfiguration : IEntityTypeConfiguration<Menu> {
                .IsRequired();
 
       
-        builder.Property<Currency>("Currency")
+        builder.Property(m => m.Currency)
                .HasConversion<string>()
                .HasMaxLength(10)
                .IsRequired();
 
-        builder.Property<MenuStatus>("status")
+        builder.Property(m => m.Status)
                .HasConversion<string>()
                .HasMaxLength(20)
                .IsRequired();

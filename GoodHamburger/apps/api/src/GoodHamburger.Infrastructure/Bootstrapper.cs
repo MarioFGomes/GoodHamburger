@@ -30,23 +30,22 @@ public static class Bootstrapper {
 
     private static void AddContext(IServiceCollection services, IConfiguration configurationManager) {
 
-        var useInMemory = configurationManager.GetSection("Configurations:InMemoryDataBase").Value;
+        bool.TryParse(configurationManager["Configurations:InMemoryDataBase"], out var useInMemory);
 
-        if (useInMemory is not null) {
-            services.AddDbContext<GoodHamburgerContext>(options =>
-            options.UseInMemoryDatabase("GoodHamburgerInMemory"));
+        if (useInMemory) {
+            services.AddDbContext<GoodHamburgerContext>(options => options
+                .UseInMemoryDatabase("GoodHamburgerInMemory")
+                .UseLazyLoadingProxies());
             return;
-        } else {
-
-            var conectionString = configurationManager.GetConnectionString("SQLServer")
-                ?? throw new InvalidOperationException("Connection string 'SQLServer' não encontrada.");
-
-            services.AddDbContext<GoodHamburgerContext>(dbContextOptions => {
-                dbContextOptions.UseSqlServer(conectionString);
-                dbContextOptions.UseLazyLoadingProxies();
-
-            });
         }
+
+        var conectionString = configurationManager.GetConnectionString("SQLServer")
+            ?? throw new InvalidOperationException("Connection string 'SQLServer' não encontrada.");
+
+        services.AddDbContext<GoodHamburgerContext>(dbContextOptions => {
+            dbContextOptions.UseSqlServer(conectionString);
+            dbContextOptions.UseLazyLoadingProxies();
+        });
 
             
         

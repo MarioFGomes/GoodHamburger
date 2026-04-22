@@ -27,12 +27,12 @@ public class SideDishesConfiguration : IEntityTypeConfiguration<SideDishes> {
                .HasMaxLength(20)
                .IsRequired();
 
-        builder.Property<Currency>("Currency")
+        builder.Property(s => s.Currency)
                .HasConversion<string>()
                .HasMaxLength(10)
                .IsRequired();
 
-        builder.Property<MenuStatus>("status")
+        builder.Property(s => s.Status)
                .HasConversion<string>()
                .HasMaxLength(20)
                .IsRequired();

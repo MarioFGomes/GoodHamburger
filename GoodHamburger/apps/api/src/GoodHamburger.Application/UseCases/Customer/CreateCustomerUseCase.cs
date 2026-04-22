@@ -33,7 +33,6 @@ public class CreateCustomerUseCase : ICreateCustomerUseCase {
             throw new ResourceAlreadyExists("Customer", request.Phone);
         }
         
-        try {
             var customer = request.ToDomain();
 
             await _customerRepo.AddOneAsync(customer, ct);
@@ -46,12 +45,6 @@ public class CreateCustomerUseCase : ICreateCustomerUseCase {
                   customer.FirstName);
 
             return customer.ToResponse();
-        } 
-        catch (Exception ex) {
-            
-            throw new ResourceAlreadyExists("Customer", request.Phone);
-        }  
-
         
     }
 }

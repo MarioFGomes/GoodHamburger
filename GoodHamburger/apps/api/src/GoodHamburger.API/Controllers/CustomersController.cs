@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace GoodHamburger.API.Controllers;
 
+[ApiVersion("1.0")]
 [Route("api/v{version:apiVersion}/customers")]
 public class CustomersController : ControllerEntinty {
 
@@ -44,7 +45,7 @@ public class CustomersController : ControllerEntinty {
     }
 
     
-    [HttpGet("{id:guid}", Name = nameof(GetById))]
+    [HttpGet("{id:guid}", Name = "Customers_GetById")]
     [ProducesResponseType(typeof(CustomerResponse), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
     public async Task<IActionResult> GetById([FromRoute] Guid id,CancellationToken ct) {
