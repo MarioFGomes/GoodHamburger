@@ -1,11 +1,12 @@
-﻿using GoodHamburger.Application.Mappers;
+﻿using FluentAssertions;
+using GoodHamburger.Application.Exceptions;
+using GoodHamburger.Application.Mappers;
 using GoodHamburger.Application.UseCases.Customer;
 using Microsoft.Extensions.Logging.Abstractions;
 using Utils.Entities;
 using Utils.Repositories;
-using FluentAssertions;
 
-namespace UseCaseTest.Customer; 
+namespace UseCaseTest.Customer;
 public class CreateCustomerUseCaseTest {
 
     #region Sucess
@@ -13,21 +14,31 @@ public class CreateCustomerUseCaseTest {
     [Fact]
     public async Task Sucess() {
         var request = CustomerBuilder.Create().ToRequest();
-        var UseCase = CreateCustomerUseCaseBuilder();
-        var result = await UseCase.ExecuteAsync(request);
+        var useCase = BuildUseCase();
+        var result = await useCase.ExecuteAsync(request);
         result.Should().NotBeNull();
     }
- #endregion
 
+    #endregion
 
-    private CreateCustomerUseCase CreateCustomerUseCaseBuilder() 
-    {
-        var logger = NullLogger<CreateCustomerUseCase>.Instance;
+    #region Fail
 
-        var CustomerRepository = CustomerRepositoryBuilder.Instance().Build();
-
+    [Fact]
+    public async Task PhoneAlreadyExists() {
+        var request = CustomerBuilder.Create().ToRequest();
+        var customerRepository = CustomerRepositoryBuilder.Instance().WithPhoneExists(true).Build();
         var unitOfWork = UnitOfWorkBuilder.Instance().Build();
+        var useCase = new CreateCustomerUseCase(customerRepository, unitOfWork, NullLogger<CreateCustomerUseCase>.Instance);
+        var act = () => useCase.ExecuteAsync(request);
+        await act.Should().ThrowAsync<ResourceAlreadyExists>();
+    }
 
-        return new CreateCustomerUseCase(CustomerRepository, unitOfWork, logger);
+    #endregion
+
+    private CreateCustomerUseCase BuildUseCase() {
+        return new CreateCustomerUseCase(
+            CustomerRepositoryBuilder.Instance().Build(),
+            UnitOfWorkBuilder.Instance().Build(),
+            NullLogger<CreateCustomerUseCase>.Instance);
     }
 }
