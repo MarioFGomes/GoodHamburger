@@ -40,4 +40,15 @@ public static class CustomerMapper {
             Address = CustomerRequest.Address,
         };
     }
+
+    public static CreateCustomerRequest ToRequest(this Customer customer) {
+
+        return new CreateCustomerRequest {
+            FirstName = customer.FirstName,
+            LastName = customer.LastName,
+            Address = customer.Address,
+            Phone = customer.Phone,
+            Email = customer.Email,
+        };
+    }
 }
