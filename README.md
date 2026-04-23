@@ -406,7 +406,13 @@ dotnet test apps/api/test/UseCases/UseCaseTest/UseCaseTest.csproj
 }
 ```
 
-Para usar SQL Server, altere `InMemoryDataBase` para `false`.
+Para usar SQL Server, altere `InMemoryDataBase` para `false` e aplique as migrations:
+
+```bash
+dotnet ef database update \
+  --project GoodHamburger/apps/api/src/GoodHamburger.Infrastructure/GoodHamburger.Infrastructure.csproj \
+  --startup-project GoodHamburger/apps/api/src/GoodHamburger.API/GoodHamburger.API.csproj
+```
 
 ### Executar
 
@@ -434,7 +440,6 @@ Estas funcionalidades foram conscientemente deixadas de fora do âmbito atual do
 |---------------|--------|
 | **Autenticação / Autorização** | Fora do âmbito da fase atual. A estrutura de middleware está preparada para adicionar JWT sem alterar use cases. |
 | **Frontend Blazor** | Template inicial criado mas não integrado com a API. Interface planeada para fase posterior. |
-| **Migrations do EF Core** | O projeto usa `EnsureCreated()` com InMemory por defeito. Para produção com SQL Server, as migrations precisam de ser geradas. |
 | **Testes de Integração** | Apenas testes unitários existem. Testes de integração contra InMemory DB são o próximo passo natural. |
 | **Testes de Domínio** | As regras de negócio das entidades (Order, OrderItem) não têm testes unitários diretos — são cobertas indiretamente pelos use case tests. |
 | **PAID / READY / DELIVERED** | Os estados do ciclo de vida do pedido existem no enum e no domínio, mas não há use cases específicos para eles (ex: `MarkAsReadyUseCase`). |
