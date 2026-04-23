@@ -34,8 +34,7 @@ public static class Bootstrapper {
 
         if (useInMemory) {
             services.AddDbContext<GoodHamburgerContext>(options => options
-                .UseInMemoryDatabase("GoodHamburgerInMemory")
-                .UseLazyLoadingProxies());
+                    .UseInMemoryDatabase("GoodHamburgerInMemory"));
             return;
         }
 
@@ -44,7 +43,6 @@ public static class Bootstrapper {
 
         services.AddDbContext<GoodHamburgerContext>(dbContextOptions => {
             dbContextOptions.UseSqlServer(conectionString);
-            dbContextOptions.UseLazyLoadingProxies();
         });
 
             

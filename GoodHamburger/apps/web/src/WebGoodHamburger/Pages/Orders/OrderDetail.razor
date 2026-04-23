@@ -1,0 +1,98 @@
+@page "/orders/{Id:guid}"
+@inject OrderService OrderSvc
+@inject NavigationManager Nav
+
+<PageTitle>Order Detail</PageTitle>
+
+@if (_error is not null) { <div class="alert alert-danger">@_error</div> }
+
+@if (_order is null) {
+    <p><em>Loading...</em></p>
+} else {
+    <div class="d-flex justify-content-between align-items-start mb-3">
+        <div>
+            <h2>Order #@_order.OrderNumber</h2>
+            <span class="badge fs-6 @StatusBadge(_order.Status)">@_order.Status</span>
+        </div>
+        <div class="d-flex gap-2">
+            @if (_order.Status == OrderStatus.PENDING) {
+                <button class="btn btn-success" @onclick="ConfirmAsync" disabled="@_busy">Confirm</button>
+                <button class="btn btn-warning" @onclick="CancelAsync" disabled="@_busy">Cancel</button>
+            } else if (_order.Status == OrderStatus.CONFIRMED) {
+                <button class="btn btn-warning" @onclick="CancelAsync" disabled="@_busy">Cancel</button>
+            }
+            <a href="orders" class="btn btn-secondary">Back</a>
+        </div>
+    </div>
+
+    <div class="card mb-4">
+        <div class="card-body">
+            <dl class="row mb-0">
+                <dt class="col-sm-3">Customer ID</dt><dd class="col-sm-9">@_order.CustomerId</dd>
+                <dt class="col-sm-3">Created</dt><dd class="col-sm-9">@_order.CreatedAt.ToString("g")</dd>
+                <dt class="col-sm-3">Subtotal</dt><dd class="col-sm-9">@_order.Subtotal.ToString("F2")</dd>
+                <dt class="col-sm-3">Discount</dt><dd class="col-sm-9">@_order.Discount%</dd>
+                <dt class="col-sm-3">Total</dt><dd class="col-sm-9"><strong>@_order.Total.ToString("F2")</strong></dd>
+            </dl>
+        </div>
+    </div>
+
+    <h5>Items</h5>
+    @foreach (var item in _order.Items) {
+        <div class="card mb-3">
+            <div class="card-body">
+                <p class="mb-1"><strong>Sandwich</strong> — Menu ID: @item.MenuId</p>
+                <p class="mb-1">Qty: @item.Qtd | Unit Price: @item.UnitPrice.ToString("F2")</p>
+                @if (item.SideDishes.Any()) {
+                    <p class="mb-1 mt-2"><strong>Side Dishes:</strong></p>
+                    <ul class="mb-0">
+                        @foreach (var sd in item.SideDishes) {
+                            <li>@sd.Category — Qty: @sd.Qtd | Price: @sd.UnitPrice.ToString("F2")</li>
+                        }
+                    </ul>
+                }
+            </div>
+        </div>
+    }
+}
+
+@code {
+    [Parameter] public Guid Id { get; set; }
+    private OrderResponse? _order;
+    private bool _busy;
+    private string? _error;
+
+    protected override async Task OnInitializedAsync() => await LoadAsync();
+
+    private async Task LoadAsync() {
+        var result = await OrderSvc.GetByIdAsync(Id);
+        if (result.IsSuccess) _order = result.Data;
+        else _error = result.ErrorMessage;
+    }
+
+    private async Task ConfirmAsync() {
+        _busy = true; _error = null;
+        var result = await OrderSvc.ConfirmAsync(Id);
+        if (result.IsSuccess) _order = result.Data;
+        else _error = result.ErrorMessage;
+        _busy = false;
+    }
+
+    private async Task CancelAsync() {
+        _busy = true; _error = null;
+        var result = await OrderSvc.CancelAsync(Id);
+        if (result.IsSuccess) _order = result.Data;
+        else _error = result.ErrorMessage;
+        _busy = false;
+    }
+
+    private static string StatusBadge(OrderStatus s) => s switch {
+        OrderStatus.PENDING => "bg-warning text-dark",
+        OrderStatus.CONFIRMED => "bg-primary",
+        OrderStatus.CANCELLED => "bg-secondary",
+        OrderStatus.PAID => "bg-success",
+        OrderStatus.READY => "bg-info text-dark",
+        OrderStatus.DELIVERED => "bg-dark",
+        _ => "bg-secondary"
+    };
+}

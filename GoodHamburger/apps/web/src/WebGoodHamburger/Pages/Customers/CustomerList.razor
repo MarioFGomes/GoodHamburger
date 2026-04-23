@@ -1,0 +1,64 @@
+@page "/customers"
+@inject CustomerService CustomerSvc
+@inject NavigationManager Nav
+@inject IJSRuntime JS
+
+<PageTitle>Customers</PageTitle>
+
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h2>Customers</h2>
+    <a href="customers/create" class="btn btn-primary">+ New Customer</a>
+</div>
+
+@if (_error is not null) {
+    <div class="alert alert-danger">@_error</div>
+}
+
+@if (_loading) {
+    <p><em>Loading...</em></p>
+} else if (_paged is null || _paged.Items.Count == 0) {
+    <p>No customers found.</p>
+} else {
+    <table class="table table-striped table-hover">
+        <thead><tr><th>Name</th><th>Email</th><th>Phone</th><th></th></tr></thead>
+        <tbody>
+            @foreach (var c in _paged.Items) {
+                <tr>
+                    <td>@c.FirstName @c.LastName</td>
+                    <td>@c.Email</td>
+                    <td>@c.Phone</td>
+                    <td class="text-end">
+                        <a href="customers/edit/@c.Id" class="btn btn-sm btn-outline-secondary me-1">Edit</a>
+                        <button class="btn btn-sm btn-outline-danger" @onclick="() => DeleteAsync(c.Id)">Delete</button>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+    <Pagination CurrentPage="_page" TotalPages="_paged.TotalPages" OnPageChange="LoadPage" />
+}
+
+@code {
+    private PagedResponse<CustomerResponse>? _paged;
+    private bool _loading = true;
+    private string? _error;
+    private int _page = 1;
+
+    protected override async Task OnInitializedAsync() => await LoadPage(1);
+
+    private async Task LoadPage(int page) {
+        _loading = true; _error = null;
+        _page = page;
+        var result = await CustomerSvc.GetAllAsync(page);
+        if (result.IsSuccess) _paged = result.Data;
+        else _error = result.ErrorMessage;
+        _loading = false;
+    }
+
+    private async Task DeleteAsync(Guid id) {
+        if (!await JS.InvokeAsync<bool>("confirm", "Delete this customer?")) return;
+        var result = await CustomerSvc.DeleteAsync(id);
+        if (result.IsSuccess) await LoadPage(_page);
+        else _error = result.ErrorMessage;
+    }
+}

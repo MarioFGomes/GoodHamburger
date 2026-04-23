@@ -1,0 +1,66 @@
+@page "/menus/edit/{Id:guid}"
+@inject MenuService MenuSvc
+@inject NavigationManager Nav
+
+<PageTitle>Edit Menu</PageTitle>
+<h2>Edit Menu</h2>
+
+@if (_error is not null) { <div class="alert alert-danger">@_error</div> }
+
+@if (_model is null) {
+    <p><em>Loading...</em></p>
+} else {
+    <EditForm Model="_model" OnValidSubmit="SubmitAsync">
+        <DataAnnotationsValidator />
+        <div class="mb-3">
+            <label class="form-label">Name</label>
+            <InputText class="form-control" @bind-Value="_model.Name" />
+            <ValidationMessage For="() => _model.Name" />
+        </div>
+        <div class="mb-3">
+            <label class="form-label">Description</label>
+            <InputTextArea class="form-control" @bind-Value="_model.Description" rows="2" />
+        </div>
+        <div class="mb-3">
+            <label class="form-label">Price</label>
+            <InputNumber class="form-control" @bind-Value="_model.Price" />
+            <ValidationMessage For="() => _model.Price" />
+        </div>
+        <div class="mb-3">
+            <label class="form-label">Currency</label>
+            <InputSelect class="form-select" @bind-Value="_model.Currency">
+                @foreach (var v in Enum.GetValues<Currency>()) { <option value="@v">@v</option> }
+            </InputSelect>
+        </div>
+        <div class="mb-3">
+            <label class="form-label">Status</label>
+            <InputSelect class="form-select" @bind-Value="_model.Status">
+                @foreach (var v in Enum.GetValues<MenuStatus>()) { <option value="@v">@v</option> }
+            </InputSelect>
+        </div>
+        <button type="submit" class="btn btn-primary" disabled="@_saving">@(_saving ? "Saving..." : "Save")</button>
+        <a href="menus" class="btn btn-secondary ms-2">Cancel</a>
+    </EditForm>
+}
+
+@code {
+    [Parameter] public Guid Id { get; set; }
+    private UpdateMenuRequest? _model;
+    private bool _saving;
+    private string? _error;
+
+    protected override async Task OnInitializedAsync() {
+        var result = await MenuSvc.GetByIdAsync(Id);
+        if (result.IsSuccess && result.Data is not null) {
+            var d = result.Data;
+            _model = new() { Name = d.Name ?? "", Description = d.Description, Price = d.Price ?? 0, Currency = d.Currency, Status = d.Status };
+        } else { _error = result.ErrorMessage; }
+    }
+
+    private async Task SubmitAsync() {
+        _saving = true; _error = null;
+        var result = await MenuSvc.UpdateAsync(Id, _model!);
+        if (result.IsSuccess) Nav.NavigateTo("/menus");
+        else { _error = result.ErrorMessage; _saving = false; }
+    }
+}

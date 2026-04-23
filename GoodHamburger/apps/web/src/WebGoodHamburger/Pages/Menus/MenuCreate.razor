@@ -1,0 +1,49 @@
+@page "/menus/create"
+@inject MenuService MenuSvc
+@inject NavigationManager Nav
+
+<PageTitle>New Menu</PageTitle>
+<h2>New Menu</h2>
+
+@if (_error is not null) { <div class="alert alert-danger">@_error</div> }
+
+<EditForm Model="_model" OnValidSubmit="SubmitAsync">
+    <DataAnnotationsValidator />
+    <div class="mb-3">
+        <label class="form-label">Name</label>
+        <InputText class="form-control" @bind-Value="_model.Name" />
+        <ValidationMessage For="() => _model.Name" />
+    </div>
+    <div class="mb-3">
+        <label class="form-label">Description</label>
+        <InputTextArea class="form-control" @bind-Value="_model.Description" rows="2" />
+    </div>
+    <div class="mb-3">
+        <label class="form-label">Price</label>
+        <InputNumber class="form-control" @bind-Value="_model.Price" />
+        <ValidationMessage For="() => _model.Price" />
+    </div>
+    <div class="mb-3">
+        <label class="form-label">Currency</label>
+        <InputSelect class="form-select" @bind-Value="_model.Currency">
+            @foreach (var v in Enum.GetValues<Currency>()) {
+                <option value="@v">@v</option>
+            }
+        </InputSelect>
+    </div>
+    <button type="submit" class="btn btn-primary" disabled="@_saving">@(_saving ? "Saving..." : "Create")</button>
+    <a href="menus" class="btn btn-secondary ms-2">Cancel</a>
+</EditForm>
+
+@code {
+    private readonly CreateMenuRequest _model = new();
+    private bool _saving;
+    private string? _error;
+
+    private async Task SubmitAsync() {
+        _saving = true; _error = null;
+        var result = await MenuSvc.CreateAsync(_model);
+        if (result.IsSuccess) Nav.NavigateTo("/menus");
+        else { _error = result.ErrorMessage; _saving = false; }
+    }
+}
