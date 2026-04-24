@@ -1,66 +1,87 @@
 @page "/menus/edit/{Id:guid}"
 @inject MenuService MenuSvc
 @inject NavigationManager Nav
+@inject ISnackbar Snackbar
 
-<PageTitle>Edit Menu</PageTitle>
-<h2>Edit Menu</h2>
+<PageTitle>Edit Menu — GoodHamburger</PageTitle>
 
-@if (_error is not null) { <div class="alert alert-danger">@_error</div> }
+<div class="d-flex align-center gap-2 mb-4">
+    <MudIconButton Icon="@Icons.Material.Filled.ArrowBack" Href="menus" Color="Color.Default" />
+    <MudText Typo="Typo.h5" Style="font-weight:700;">Edit Menu</MudText>
+</div>
 
-@if (_model is null) {
-    <p><em>Loading...</em></p>
-} else {
-    <EditForm Model="_model" OnValidSubmit="SubmitAsync">
-        <DataAnnotationsValidator />
-        <div class="mb-3">
-            <label class="form-label">Name</label>
-            <InputText class="form-control" @bind-Value="_model.Name" />
-            <ValidationMessage For="() => _model.Name" />
-        </div>
-        <div class="mb-3">
-            <label class="form-label">Description</label>
-            <InputTextArea class="form-control" @bind-Value="_model.Description" rows="2" />
-        </div>
-        <div class="mb-3">
-            <label class="form-label">Price</label>
-            <InputNumber class="form-control" @bind-Value="_model.Price" />
-            <ValidationMessage For="() => _model.Price" />
-        </div>
-        <div class="mb-3">
-            <label class="form-label">Currency</label>
-            <InputSelect class="form-select" @bind-Value="_model.Currency">
-                @foreach (var v in Enum.GetValues<Currency>()) { <option value="@v">@v</option> }
-            </InputSelect>
-        </div>
-        <div class="mb-3">
-            <label class="form-label">Status</label>
-            <InputSelect class="form-select" @bind-Value="_model.Status">
-                @foreach (var v in Enum.GetValues<MenuStatus>()) { <option value="@v">@v</option> }
-            </InputSelect>
-        </div>
-        <button type="submit" class="btn btn-primary" disabled="@_saving">@(_saving ? "Saving..." : "Save")</button>
-        <a href="menus" class="btn btn-secondary ms-2">Cancel</a>
-    </EditForm>
+@if (_model is null && !_notFound) {
+    <MudProgressLinear Indeterminate Color="Color.Warning" />
+} else if (_model is not null) {
+    <MudPaper Elevation="2" Class="pa-6" Style="max-width:640px;">
+        <EditForm Model="_model" OnValidSubmit="SubmitAsync">
+            <DataAnnotationsValidator />
+            <MudGrid Spacing="3">
+                <MudItem xs="12">
+                    <MudTextField @bind-Value="_model.Name" Label="Name" For="() => _model.Name"
+                                  Variant="Variant.Outlined" Required="true" />
+                </MudItem>
+                <MudItem xs="12">
+                    <MudTextField @bind-Value="_model.Description" Label="Description"
+                                  Variant="Variant.Outlined" Lines="3" />
+                </MudItem>
+                <MudItem xs="12" sm="6">
+                    <MudNumericField @bind-Value="_model.Price" Label="Price" For="() => _model.Price"
+                                     Variant="Variant.Outlined" Format="F2" Min="0" />
+                </MudItem>
+                <MudItem xs="12" sm="6">
+                    <MudSelect @bind-Value="_model.Currency" Label="Currency" Variant="Variant.Outlined">
+                        @foreach (var v in Enum.GetValues<Currency>()) {
+                            <MudSelectItem Value="@v">@v</MudSelectItem>
+                        }
+                    </MudSelect>
+                </MudItem>
+                <MudItem xs="12" sm="6">
+                    <MudSelect @bind-Value="_model.Status" Label="Status" Variant="Variant.Outlined">
+                        @foreach (var v in Enum.GetValues<MenuStatus>()) {
+                            <MudSelectItem Value="@v">@v</MudSelectItem>
+                        }
+                    </MudSelect>
+                </MudItem>
+            </MudGrid>
+            <div class="d-flex gap-3 mt-6">
+                <MudButton ButtonType="ButtonType.Submit" Variant="Variant.Filled" Color="Color.Warning"
+                           Disabled="_saving" StartIcon="@Icons.Material.Filled.Save">
+                    @(_saving ? "Saving..." : "Save")
+                </MudButton>
+                <MudButton Href="menus" Variant="Variant.Outlined" Color="Color.Default">Cancel</MudButton>
+            </div>
+        </EditForm>
+    </MudPaper>
 }
 
 @code {
     [Parameter] public Guid Id { get; set; }
     private UpdateMenuRequest? _model;
     private bool _saving;
-    private string? _error;
+    private bool _notFound;
 
     protected override async Task OnInitializedAsync() {
         var result = await MenuSvc.GetByIdAsync(Id);
         if (result.IsSuccess && result.Data is not null) {
             var d = result.Data;
-            _model = new() { Name = d.Name ?? "", Description = d.Description, Price = d.Price ?? 0, Currency = d.Currency, Status = d.Status };
-        } else { _error = result.ErrorMessage; }
+            _model = new() {
+                Name = d.Name ?? "",
+                Description = d.Description,
+                Price = d.Price ?? 0,
+                Currency = d.Currency,
+                Status = d.Status
+            };
+        } else {
+            _notFound = true;
+            Snackbar.Add(result.ErrorMessage ?? "Menu not found.", Severity.Error);
+        }
     }
 
     private async Task SubmitAsync() {
-        _saving = true; _error = null;
+        _saving = true;
         var result = await MenuSvc.UpdateAsync(Id, _model!);
         if (result.IsSuccess) Nav.NavigateTo("/menus");
-        else { _error = result.ErrorMessage; _saving = false; }
+        else { Snackbar.Add(result.ErrorMessage!, Severity.Error); _saving = false; }
     }
 }

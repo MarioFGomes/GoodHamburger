@@ -1,19 +1,50 @@
-﻿@inherits LayoutComponentBase
+@inherits LayoutComponentBase
 
-<PageTitle>WebGoodHamburger</PageTitle>
+<MudThemeProvider Theme="_theme" />
+<MudDialogProvider />
+<MudSnackbarProvider />
 
-<div class="page">
-    <div class="sidebar">
+<MudLayout>
+    <MudAppBar Elevation="1" Color="Color.Inherit" Style="background:#181512;">
+        <MudIconButton Icon="@Icons.Material.Filled.Menu" Color="Color.Inherit" Style="color:white;"
+                       Edge="Edge.Start" OnClick="ToggleDrawer" />
+        <MudText Typo="Typo.h6" Style="color:white;font-weight:700;letter-spacing:.5px;margin-left:6px;">
+            GoodHamburger
+        </MudText>
+        <MudSpacer />
+    </MudAppBar>
+
+    <MudDrawer @bind-Open="_drawerOpen" ClipMode="DrawerClipMode.Always"
+               Variant="DrawerVariant.Responsive" Elevation="2">
+        <MudDrawerHeader>
+            <MudText Typo="Typo.subtitle1" Style="font-weight:700;">Navigation</MudText>
+        </MudDrawerHeader>
         <NavMenu />
-    </div>
+    </MudDrawer>
 
-    <main>
-        <div class="top-row px-4">
-            <a href="https://docs.microsoft.com/aspnet/" target="_blank">About</a>
-        </div>
-
-        <article class="content px-4">
+    <MudMainContent>
+        <MudContainer MaxWidth="MaxWidth.ExtraLarge" Class="pa-4 pa-md-6">
             @Body
-        </article>
-    </main>
-</div>
+        </MudContainer>
+    </MudMainContent>
+</MudLayout>
+
+@code {
+    private bool _drawerOpen = true;
+
+    private readonly MudTheme _theme = new() {
+        Palette = new PaletteLight {
+            Primary = "#feae2c",
+            PrimaryContrastText = "#181512",
+            Secondary = "#835500",
+            AppbarBackground = "#181512",
+            DrawerBackground = "#181512",
+            DrawerText = "#f5f5f4",
+            DrawerIcon = "#feae2c",
+            Background = "#f7f7f8",
+            Surface = "#ffffff",
+        }
+    };
+
+    private void ToggleDrawer() => _drawerOpen = !_drawerOpen;
+}

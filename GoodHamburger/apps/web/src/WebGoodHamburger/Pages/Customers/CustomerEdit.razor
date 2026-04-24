@@ -1,67 +1,80 @@
 @page "/customers/edit/{Id:guid}"
 @inject CustomerService CustomerSvc
 @inject NavigationManager Nav
+@inject ISnackbar Snackbar
 
-<PageTitle>Edit Customer</PageTitle>
+<PageTitle>Edit Customer — GoodHamburger</PageTitle>
 
-<h2>Edit Customer</h2>
+<div class="d-flex align-center gap-2 mb-4">
+    <MudIconButton Icon="@Icons.Material.Filled.ArrowBack" Href="customers" Color="Color.Default" />
+    <MudText Typo="Typo.h5" Style="font-weight:700;">Edit Customer</MudText>
+</div>
 
-@if (_error is not null) {
-    <div class="alert alert-danger">@_error</div>
-}
-
-@if (_model is null) {
-    <p><em>Loading...</em></p>
-} else {
-    <EditForm Model="_model" OnValidSubmit="SubmitAsync">
-        <DataAnnotationsValidator />
-        <div class="mb-3">
-            <label class="form-label">First Name</label>
-            <InputText class="form-control" @bind-Value="_model.FirstName" />
-            <ValidationMessage For="() => _model.FirstName" />
-        </div>
-        <div class="mb-3">
-            <label class="form-label">Last Name</label>
-            <InputText class="form-control" @bind-Value="_model.LastName" />
-            <ValidationMessage For="() => _model.LastName" />
-        </div>
-        <div class="mb-3">
-            <label class="form-label">Address</label>
-            <InputText class="form-control" @bind-Value="_model.Address" />
-        </div>
-        <div class="mb-3">
-            <label class="form-label">Phone</label>
-            <InputText class="form-control" @bind-Value="_model.Phone" />
-            <ValidationMessage For="() => _model.Phone" />
-        </div>
-        <div class="mb-3">
-            <label class="form-label">Email</label>
-            <InputText class="form-control" @bind-Value="_model.Email" />
-            <ValidationMessage For="() => _model.Email" />
-        </div>
-        <button type="submit" class="btn btn-primary" disabled="@_saving">@(_saving ? "Saving..." : "Save")</button>
-        <a href="customers" class="btn btn-secondary ms-2">Cancel</a>
-    </EditForm>
+@if (_model is null && !_notFound) {
+    <MudProgressLinear Indeterminate Color="Color.Warning" />
+} else if (_model is not null) {
+    <MudPaper Elevation="2" Class="pa-6" Style="max-width:640px;">
+        <EditForm Model="_model" OnValidSubmit="SubmitAsync">
+            <DataAnnotationsValidator />
+            <MudGrid Spacing="3">
+                <MudItem xs="12" sm="6">
+                    <MudTextField @bind-Value="_model.FirstName" Label="First Name" For="() => _model.FirstName"
+                                  Variant="Variant.Outlined" Required="true" />
+                </MudItem>
+                <MudItem xs="12" sm="6">
+                    <MudTextField @bind-Value="_model.LastName" Label="Last Name" For="() => _model.LastName"
+                                  Variant="Variant.Outlined" Required="true" />
+                </MudItem>
+                <MudItem xs="12">
+                    <MudTextField @bind-Value="_model.Address" Label="Address" Variant="Variant.Outlined" />
+                </MudItem>
+                <MudItem xs="12" sm="6">
+                    <MudTextField @bind-Value="_model.Phone" Label="Phone" For="() => _model.Phone"
+                                  Variant="Variant.Outlined" Required="true" />
+                </MudItem>
+                <MudItem xs="12" sm="6">
+                    <MudTextField @bind-Value="_model.Email" Label="Email" For="() => _model.Email"
+                                  Variant="Variant.Outlined" InputType="InputType.Email" Required="true" />
+                </MudItem>
+            </MudGrid>
+            <div class="d-flex gap-3 mt-6">
+                <MudButton ButtonType="ButtonType.Submit" Variant="Variant.Filled" Color="Color.Warning"
+                           Disabled="_saving" StartIcon="@Icons.Material.Filled.Save">
+                    @(_saving ? "Saving..." : "Save")
+                </MudButton>
+                <MudButton Href="customers" Variant="Variant.Outlined" Color="Color.Default">Cancel</MudButton>
+            </div>
+        </EditForm>
+    </MudPaper>
 }
 
 @code {
     [Parameter] public Guid Id { get; set; }
     private UpdateCustomerRequest? _model;
     private bool _saving;
-    private string? _error;
+    private bool _notFound;
 
     protected override async Task OnInitializedAsync() {
         var result = await CustomerSvc.GetByIdAsync(Id);
         if (result.IsSuccess && result.Data is not null) {
             var d = result.Data;
-            _model = new() { FirstName = d.FirstName ?? "", LastName = d.LastName ?? "", Address = d.Address, Phone = d.Phone ?? "", Email = d.Email ?? "" };
-        } else { _error = result.ErrorMessage; }
+            _model = new() {
+                FirstName = d.FirstName ?? "",
+                LastName = d.LastName ?? "",
+                Address = d.Address,
+                Phone = d.Phone ?? "",
+                Email = d.Email ?? ""
+            };
+        } else {
+            _notFound = true;
+            Snackbar.Add(result.ErrorMessage ?? "Customer not found.", Severity.Error);
+        }
     }
 
     private async Task SubmitAsync() {
-        _saving = true; _error = null;
+        _saving = true;
         var result = await CustomerSvc.UpdateAsync(Id, _model!);
         if (result.IsSuccess) Nav.NavigateTo("/customers");
-        else { _error = result.ErrorMessage; _saving = false; }
+        else { Snackbar.Add(result.ErrorMessage!, Severity.Error); _saving = false; }
     }
 }

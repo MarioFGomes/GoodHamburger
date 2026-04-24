@@ -4,51 +4,83 @@
 @inject SideDishService SideDishSvc
 @inject OrderService OrderSvc
 
-<PageTitle>Good Hamburger — Dashboard</PageTitle>
+<PageTitle>Dashboard — GoodHamburger</PageTitle>
 
-<h1 class="mb-4">Dashboard</h1>
+<MudText Typo="Typo.h5" Class="mb-6" Style="font-weight:700;">Dashboard</MudText>
 
 @if (_loading) {
-    <p><em>Loading...</em></p>
+    <MudProgressLinear Indeterminate Color="Color.Warning" />
 } else {
-    <div class="row g-4">
-        <div class="col-sm-6 col-lg-3">
-            <div class="card text-white bg-primary h-100">
-                <div class="card-body">
-                    <h5 class="card-title">Customers</h5>
-                    <p class="display-4">@_customers</p>
-                </div>
-                <div class="card-footer"><a href="customers" class="text-white">View all →</a></div>
-            </div>
-        </div>
-        <div class="col-sm-6 col-lg-3">
-            <div class="card text-white bg-success h-100">
-                <div class="card-body">
-                    <h5 class="card-title">Menus</h5>
-                    <p class="display-4">@_menus</p>
-                </div>
-                <div class="card-footer"><a href="menus" class="text-white">View all →</a></div>
-            </div>
-        </div>
-        <div class="col-sm-6 col-lg-3">
-            <div class="card text-white bg-warning h-100">
-                <div class="card-body">
-                    <h5 class="card-title">Side Dishes</h5>
-                    <p class="display-4">@_sideDishes</p>
-                </div>
-                <div class="card-footer"><a href="side-dishes" class="text-white">View all →</a></div>
-            </div>
-        </div>
-        <div class="col-sm-6 col-lg-3">
-            <div class="card text-white bg-danger h-100">
-                <div class="card-body">
-                    <h5 class="card-title">Orders</h5>
-                    <p class="display-4">@_orders</p>
-                </div>
-                <div class="card-footer"><a href="orders" class="text-white">View all →</a></div>
-            </div>
-        </div>
-    </div>
+    <MudGrid Spacing="3">
+        <MudItem xs="12" sm="6" lg="3">
+            <MudCard Elevation="2">
+                <MudCardContent>
+                    <div class="d-flex align-center gap-4">
+                        <MudIcon Icon="@Icons.Material.Filled.People" Color="Color.Warning" Size="Size.Large" />
+                        <div>
+                            <MudText Typo="Typo.h4" Style="font-weight:700;">@_customers</MudText>
+                            <MudText Typo="Typo.body2" Color="Color.Secondary">Customers</MudText>
+                        </div>
+                    </div>
+                </MudCardContent>
+                <MudCardActions>
+                    <MudButton Href="customers" Color="Color.Warning" Variant="Variant.Text"
+                               EndIcon="@Icons.Material.Filled.ArrowForward">View all</MudButton>
+                </MudCardActions>
+            </MudCard>
+        </MudItem>
+        <MudItem xs="12" sm="6" lg="3">
+            <MudCard Elevation="2">
+                <MudCardContent>
+                    <div class="d-flex align-center gap-4">
+                        <MudIcon Icon="@Icons.Material.Filled.MenuBook" Color="Color.Warning" Size="Size.Large" />
+                        <div>
+                            <MudText Typo="Typo.h4" Style="font-weight:700;">@_menus</MudText>
+                            <MudText Typo="Typo.body2" Color="Color.Secondary">Menus</MudText>
+                        </div>
+                    </div>
+                </MudCardContent>
+                <MudCardActions>
+                    <MudButton Href="menus" Color="Color.Warning" Variant="Variant.Text"
+                               EndIcon="@Icons.Material.Filled.ArrowForward">View all</MudButton>
+                </MudCardActions>
+            </MudCard>
+        </MudItem>
+        <MudItem xs="12" sm="6" lg="3">
+            <MudCard Elevation="2">
+                <MudCardContent>
+                    <div class="d-flex align-center gap-4">
+                        <MudIcon Icon="@Icons.Material.Filled.RiceBowl" Color="Color.Warning" Size="Size.Large" />
+                        <div>
+                            <MudText Typo="Typo.h4" Style="font-weight:700;">@_sideDishes</MudText>
+                            <MudText Typo="Typo.body2" Color="Color.Secondary">Side Dishes</MudText>
+                        </div>
+                    </div>
+                </MudCardContent>
+                <MudCardActions>
+                    <MudButton Href="side-dishes" Color="Color.Warning" Variant="Variant.Text"
+                               EndIcon="@Icons.Material.Filled.ArrowForward">View all</MudButton>
+                </MudCardActions>
+            </MudCard>
+        </MudItem>
+        <MudItem xs="12" sm="6" lg="3">
+            <MudCard Elevation="2">
+                <MudCardContent>
+                    <div class="d-flex align-center gap-4">
+                        <MudIcon Icon="@Icons.Material.Filled.ShoppingCart" Color="Color.Warning" Size="Size.Large" />
+                        <div>
+                            <MudText Typo="Typo.h4" Style="font-weight:700;">@_orders</MudText>
+                            <MudText Typo="Typo.body2" Color="Color.Secondary">Orders</MudText>
+                        </div>
+                    </div>
+                </MudCardContent>
+                <MudCardActions>
+                    <MudButton Href="orders" Color="Color.Warning" Variant="Variant.Text"
+                               EndIcon="@Icons.Material.Filled.ArrowForward">View all</MudButton>
+                </MudCardActions>
+            </MudCard>
+        </MudItem>
+    </MudGrid>
 }
 
 @code {

@@ -1,152 +1,146 @@
 @page "/orders/{Id:guid}"
 @inject OrderService OrderSvc
-@inject NavigationManager Nav
+@inject ISnackbar Snackbar
 
 <PageTitle>Order Detail — GoodHamburger</PageTitle>
 
-<Toast @ref="_toast" />
-
-<div class="max-w-3xl mx-auto space-y-6">
-
-    <div class="flex items-center gap-4">
-        <a href="/orders" class="p-2 hover:bg-stone-100 rounded-lg transition-colors text-zinc-500">
-            <span class="material-symbols-outlined">arrow_back</span>
-        </a>
-        <div>
-            <h1 class="text-2xl font-bold text-zinc-900 font-lexend">Order Detail</h1>
-            <p class="text-sm text-zinc-500 mt-0.5">View and manage this order</p>
-        </div>
+<div class="d-flex align-center gap-2 mb-4">
+    <MudIconButton Icon="@Icons.Material.Filled.ArrowBack" Href="orders" Color="Color.Default" />
+    <div>
+        <MudText Typo="Typo.h5" Style="font-weight:700;">Order Detail</MudText>
+        <MudText Typo="Typo.body2" Color="Color.Secondary">View and manage this order</MudText>
     </div>
+</div>
 
-    @if (_order is null) {
-        <div class="flex items-center justify-center py-16">
-            <div class="flex items-center gap-3 text-zinc-400">
-                <span class="material-symbols-outlined animate-spin">refresh</span>
-                <span class="text-sm">Loading order...</span>
-            </div>
-        </div>
-    } else {
+@if (_order is null) {
+    <MudProgressLinear Indeterminate Color="Color.Warning" />
+} else {
+    <MudGrid Spacing="3">
 
-        <div class="bg-white rounded-xl shadow-sm border border-zinc-100 p-6">
-            <div class="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
-                <div>
-                    <p class="text-xs text-zinc-400 uppercase tracking-wider font-semibold mb-1">Order</p>
-                    <p class="text-2xl font-bold text-zinc-900 font-lexend">#GH-@_order.OrderNumber</p>
-                    <p class="text-sm text-zinc-500 mt-1">
-                        <span class="material-symbols-outlined text-zinc-400" style="font-size:14px;vertical-align:middle">person</span>
-                        @(string.IsNullOrEmpty(_order.CustomerName) ? "Unknown customer" : _order.CustomerName)
-                    </p>
-                    <p class="text-xs text-zinc-400 mt-1">@_order.CreatedAt.ToString("dd MMM yyyy, HH:mm")</p>
-                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium mt-2 @StatusClass(_order.Status)">
-                        @_order.Status
-                    </span>
+        <MudItem xs="12">
+            <MudPaper Elevation="2" Class="pa-5">
+                <div class="d-flex flex-wrap justify-space-between align-start gap-4">
+                    <div>
+                        <MudText Typo="Typo.caption" Color="Color.Secondary"
+                                 Style="text-transform:uppercase;letter-spacing:1px;">Order</MudText>
+                        <MudText Typo="Typo.h5" Style="font-weight:700;">#GH-@_order.OrderNumber</MudText>
+                        <div class="d-flex align-center gap-1 mt-1">
+                            <MudIcon Icon="@Icons.Material.Filled.Person" Size="Size.Small" Color="Color.Secondary" />
+                            <MudText Typo="Typo.body2">
+                                @(string.IsNullOrEmpty(_order.CustomerName) ? "Unknown customer" : _order.CustomerName)
+                            </MudText>
+                        </div>
+                        <MudText Typo="Typo.caption" Color="Color.Secondary">
+                            @_order.CreatedAt.ToString("dd MMM yyyy, HH:mm")
+                        </MudText>
+                        <div class="mt-2">
+                            <MudChip Size="Size.Small" Color="@GetStatusColor(_order.Status)">@_order.Status</MudChip>
+                        </div>
+                    </div>
+                    <div class="d-flex flex-wrap gap-2">
+                        @if (_order.Status == OrderStatus.PENDING) {
+                            <MudButton Variant="Variant.Filled" Color="Color.Warning"
+                                       StartIcon="@Icons.Material.Filled.CheckCircle"
+                                       OnClick="ConfirmAsync" Disabled="_busy">Confirm</MudButton>
+                            <MudButton Variant="Variant.Outlined" Color="Color.Error"
+                                       StartIcon="@Icons.Material.Filled.Cancel"
+                                       OnClick="CancelAsync" Disabled="_busy">Cancel</MudButton>
+                        } else if (_order.Status == OrderStatus.CONFIRMED) {
+                            <MudButton Variant="Variant.Outlined" Color="Color.Error"
+                                       StartIcon="@Icons.Material.Filled.Cancel"
+                                       OnClick="CancelAsync" Disabled="_busy">Cancel</MudButton>
+                        }
+                    </div>
                 </div>
-                <div class="flex flex-wrap gap-2">
-                    @if (_order.Status == OrderStatus.PENDING) {
-                        <button class="gh-btn gh-btn-primary" @onclick="ConfirmAsync" disabled="@_busy">
-                            @if (_busy) {
-                                <span class="material-symbols-outlined animate-spin" style="font-size:16px">refresh</span>
-                            } else {
-                                <span class="material-symbols-outlined" style="font-size:16px">check_circle</span>
-                            }
-                            <span>Confirm</span>
-                        </button>
-                        <button class="gh-btn gh-btn-secondary" @onclick="CancelAsync" disabled="@_busy">
-                            <span class="material-symbols-outlined" style="font-size:16px">cancel</span>
-                            <span>Cancel</span>
-                        </button>
-                    } else if (_order.Status == OrderStatus.CONFIRMED) {
-                        <button class="gh-btn gh-btn-secondary" @onclick="CancelAsync" disabled="@_busy">
-                            @if (_busy) {
-                                <span class="material-symbols-outlined animate-spin" style="font-size:16px">refresh</span>
-                            } else {
-                                <span class="material-symbols-outlined" style="font-size:16px">cancel</span>
-                            }
-                            <span>Cancel</span>
-                        </button>
-                    }
-                    <a href="/orders" class="gh-btn gh-btn-secondary">
-                        <span class="material-symbols-outlined" style="font-size:16px">arrow_back</span>
-                        <span>Back</span>
-                    </a>
-                </div>
-            </div>
-        </div>
+            </MudPaper>
+        </MudItem>
 
-        <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
-            <div class="bg-white rounded-xl shadow-sm border border-zinc-100 p-5">
-                <p class="text-xs text-zinc-400 uppercase tracking-wider font-semibold mb-1">Subtotal</p>
-                <p class="text-xl font-bold text-zinc-900">R$ @_order.Subtotal.ToString("F2")</p>
-            </div>
-            <div class="bg-white rounded-xl shadow-sm border border-zinc-100 p-5">
-                <p class="text-xs text-zinc-400 uppercase tracking-wider font-semibold mb-1">Discount</p>
+        <MudItem xs="12" sm="4">
+            <MudPaper Elevation="2" Class="pa-4">
+                <MudText Typo="Typo.caption" Color="Color.Secondary"
+                         Style="text-transform:uppercase;letter-spacing:1px;">Subtotal</MudText>
+                <MudText Typo="Typo.h6" Style="font-weight:700;">R$ @_order.Subtotal.ToString("F2")</MudText>
+            </MudPaper>
+        </MudItem>
+        <MudItem xs="12" sm="4">
+            <MudPaper Elevation="2" Class="pa-4">
+                <MudText Typo="Typo.caption" Color="Color.Secondary"
+                         Style="text-transform:uppercase;letter-spacing:1px;">Discount</MudText>
                 @if (_order.Discount > 0) {
-                    <p class="text-xl font-bold text-emerald-600">-@_order.Discount%</p>
+                    <MudText Typo="Typo.h6" Style="font-weight:700;color:#16a34a;">-@_order.Discount%</MudText>
                 } else {
-                    <p class="text-xl font-bold text-zinc-400">—</p>
+                    <MudText Typo="Typo.h6" Color="Color.Secondary">—</MudText>
                 }
-            </div>
-            <div class="bg-primary rounded-xl p-5">
-                <p class="text-xs text-secondary-fixed uppercase tracking-wider font-semibold mb-1">Total</p>
-                <p class="text-xl font-bold text-white">R$ @_order.Total.ToString("F2")</p>
-            </div>
-        </div>
+            </MudPaper>
+        </MudItem>
+        <MudItem xs="12" sm="4">
+            <MudPaper Elevation="2" Class="pa-4" Style="background:#181512;">
+                <MudText Typo="Typo.caption"
+                         Style="text-transform:uppercase;letter-spacing:1px;color:#feae2c;">Total</MudText>
+                <MudText Typo="Typo.h6" Style="font-weight:700;color:white;">
+                    R$ @_order.Total.ToString("F2")
+                </MudText>
+            </MudPaper>
+        </MudItem>
 
-        <div class="bg-white rounded-xl shadow-sm border border-zinc-100 overflow-hidden">
-            <div class="px-6 py-4 border-b border-zinc-100">
-                <h2 class="text-sm font-semibold text-zinc-900">Order Items</h2>
-            </div>
-            <div class="divide-y divide-zinc-50">
+        <MudItem xs="12">
+            <MudPaper Elevation="2">
+                <div class="pa-4 pb-2">
+                    <MudText Typo="Typo.subtitle1" Style="font-weight:600;">Order Items</MudText>
+                </div>
+                <MudDivider />
                 @foreach (var item in _order.Items) {
-                    <div class="px-6 py-5">
-                        <div class="flex items-start gap-4">
-                            <div class="w-10 h-10 rounded-xl bg-amber-100 flex items-center justify-center shrink-0">
-                                <span class="material-symbols-outlined text-amber-600" style="font-size:20px;font-variation-settings:'FILL' 1">lunch_dining</span>
-                            </div>
-                            <div class="flex-1 min-w-0">
-                                <div class="flex items-center justify-between gap-2">
-                                    <p class="text-sm font-semibold text-zinc-900">
+                    <div class="pa-4">
+                        <div class="d-flex align-start gap-4">
+                            <MudAvatar Style="background:rgba(254,174,44,0.15);">
+                                <MudIcon Icon="@Icons.Material.Filled.LunchDining" Color="Color.Warning" />
+                            </MudAvatar>
+                            <div style="flex:1;min-width:0;">
+                                <div class="d-flex justify-space-between gap-2">
+                                    <MudText Typo="Typo.body1" Style="font-weight:600;">
                                         @(string.IsNullOrEmpty(item.MenuName) ? "Sandwich" : item.MenuName)
-                                    </p>
-                                    <p class="text-sm font-bold text-zinc-900">R$ @item.UnitPrice.ToString("F2")</p>
+                                    </MudText>
+                                    <MudText Typo="Typo.body1" Style="font-weight:700;">
+                                        R$ @item.UnitPrice.ToString("F2")
+                                    </MudText>
                                 </div>
-                                <p class="text-xs text-zinc-400 mt-0.5">Qty: @item.Qtd</p>
+                                <MudText Typo="Typo.caption" Color="Color.Secondary">Qty: @item.Qtd</MudText>
 
                                 @if (item.SideDishes.Any()) {
-                                    <div class="mt-3 space-y-2">
-                                        <p class="text-xs font-semibold text-zinc-500 uppercase tracking-wider">Side Dishes</p>
-                                        @foreach (var sd in item.SideDishes) {
-                                            <div class="flex items-center gap-3 bg-zinc-50 rounded-lg px-3 py-2">
-                                                <div class="w-6 h-6 rounded-md flex items-center justify-center shrink-0
-                                                    @(sd.Category == SideDishCategory.FRIES ? "bg-amber-100" : "bg-blue-100")">
-                                                    <span class="material-symbols-outlined @(sd.Category == SideDishCategory.FRIES ? "text-amber-600" : "text-blue-500")"
-                                                          style="font-size:12px;font-variation-settings:'FILL' 1">
-                                                        @(sd.Category == SideDishCategory.FRIES ? "fastfood" : "local_drink")
-                                                    </span>
-                                                </div>
-                                                <span class="text-xs font-medium text-zinc-700 flex-1">
+                                    <MudText Typo="Typo.caption" Class="mt-3 mb-1"
+                                             Style="text-transform:uppercase;letter-spacing:1px;font-weight:600;">
+                                        Side Dishes
+                                    </MudText>
+                                    @foreach (var sd in item.SideDishes) {
+                                        <MudPaper Outlined="true" Class="pa-2 mb-1 rounded">
+                                            <div class="d-flex align-center gap-3">
+                                                <MudIcon Icon="@(sd.Category == SideDishCategory.FRIES ? Icons.Material.Filled.Fastfood : Icons.Material.Filled.LocalDrink)"
+                                                         Color="@(sd.Category == SideDishCategory.FRIES ? Color.Warning : Color.Info)"
+                                                         Size="Size.Small" />
+                                                <MudText Typo="Typo.body2" Style="flex:1;">
                                                     @(string.IsNullOrEmpty(sd.Name) ? sd.Category.ToString() : sd.Name)
-                                                </span>
-                                                <span class="text-xs text-zinc-400">Qty: @sd.Qtd</span>
-                                                <span class="text-xs font-semibold text-zinc-900">R$ @sd.UnitPrice.ToString("F2")</span>
+                                                </MudText>
+                                                <MudText Typo="Typo.caption" Color="Color.Secondary">Qty: @sd.Qtd</MudText>
+                                                <MudText Typo="Typo.body2" Style="font-weight:600;">
+                                                    R$ @sd.UnitPrice.ToString("F2")
+                                                </MudText>
                                             </div>
-                                        }
-                                    </div>
+                                        </MudPaper>
+                                    }
                                 }
                             </div>
                         </div>
                     </div>
+                    <MudDivider />
                 }
-            </div>
-        </div>
+            </MudPaper>
+        </MudItem>
 
-    }
-
-</div>
+    </MudGrid>
+}
 
 @code {
     [Parameter] public Guid Id { get; set; }
-    private Toast _toast = default!;
     private OrderResponse? _order;
     private bool _busy;
 
@@ -155,14 +149,14 @@
     private async Task LoadAsync() {
         var result = await OrderSvc.GetByIdAsync(Id);
         if (result.IsSuccess) _order = result.Data;
-        else await _toast.ShowAsync(result.ErrorMessage!);
+        else Snackbar.Add(result.ErrorMessage!, Severity.Error);
     }
 
     private async Task ConfirmAsync() {
         _busy = true;
         var result = await OrderSvc.ConfirmAsync(Id);
         if (result.IsSuccess) _order = result.Data;
-        else await _toast.ShowAsync(result.ErrorMessage!);
+        else Snackbar.Add(result.ErrorMessage!, Severity.Error);
         _busy = false;
     }
 
@@ -170,17 +164,17 @@
         _busy = true;
         var result = await OrderSvc.CancelAsync(Id);
         if (result.IsSuccess) _order = result.Data;
-        else await _toast.ShowAsync(result.ErrorMessage!);
+        else Snackbar.Add(result.ErrorMessage!, Severity.Error);
         _busy = false;
     }
 
-    private static string StatusClass(OrderStatus s) => s switch {
-        OrderStatus.PENDING   => "bg-amber-100 text-amber-800",
-        OrderStatus.CONFIRMED => "bg-blue-100 text-blue-800",
-        OrderStatus.CANCELLED => "bg-zinc-100 text-zinc-600",
-        OrderStatus.PAID      => "bg-emerald-100 text-emerald-800",
-        OrderStatus.READY     => "bg-cyan-100 text-cyan-800",
-        OrderStatus.DELIVERED => "bg-zinc-800 text-white",
-        _                     => "bg-zinc-100 text-zinc-600"
+    private static Color GetStatusColor(OrderStatus s) => s switch {
+        OrderStatus.PENDING   => Color.Warning,
+        OrderStatus.CONFIRMED => Color.Info,
+        OrderStatus.CANCELLED => Color.Default,
+        OrderStatus.PAID      => Color.Success,
+        OrderStatus.READY     => Color.Tertiary,
+        OrderStatus.DELIVERED => Color.Dark,
+        _                     => Color.Default
     };
 }

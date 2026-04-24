@@ -1,53 +1,64 @@
 @page "/side-dishes/create"
 @inject SideDishService SideDishSvc
 @inject NavigationManager Nav
+@inject ISnackbar Snackbar
 
-<PageTitle>New Side Dish</PageTitle>
-<h2>New Side Dish</h2>
+<PageTitle>New Side Dish — GoodHamburger</PageTitle>
 
-@if (_error is not null) { <div class="alert alert-danger">@_error</div> }
+<div class="d-flex align-center gap-2 mb-4">
+    <MudIconButton Icon="@Icons.Material.Filled.ArrowBack" Href="side-dishes" Color="Color.Default" />
+    <MudText Typo="Typo.h5" Style="font-weight:700;">New Side Dish</MudText>
+</div>
 
-<EditForm Model="_model" OnValidSubmit="SubmitAsync">
-    <DataAnnotationsValidator />
-    <div class="mb-3">
-        <label class="form-label">Name</label>
-        <InputText class="form-control" @bind-Value="_model.Name" />
-        <ValidationMessage For="() => _model.Name" />
-    </div>
-    <div class="mb-3">
-        <label class="form-label">Description</label>
-        <InputTextArea class="form-control" @bind-Value="_model.Description" rows="2" />
-    </div>
-    <div class="mb-3">
-        <label class="form-label">Price</label>
-        <InputNumber class="form-control" @bind-Value="_model.Price" />
-        <ValidationMessage For="() => _model.Price" />
-    </div>
-    <div class="mb-3">
-        <label class="form-label">Category</label>
-        <InputSelect class="form-select" @bind-Value="_model.Category">
-            @foreach (var v in Enum.GetValues<SideDishCategory>()) { <option value="@v">@v</option> }
-        </InputSelect>
-    </div>
-    <div class="mb-3">
-        <label class="form-label">Currency</label>
-        <InputSelect class="form-select" @bind-Value="_model.Currency">
-            @foreach (var v in Enum.GetValues<Currency>()) { <option value="@v">@v</option> }
-        </InputSelect>
-    </div>
-    <button type="submit" class="btn btn-primary" disabled="@_saving">@(_saving ? "Saving..." : "Create")</button>
-    <a href="side-dishes" class="btn btn-secondary ms-2">Cancel</a>
-</EditForm>
+<MudPaper Elevation="2" Class="pa-6" Style="max-width:640px;">
+    <EditForm Model="_model" OnValidSubmit="SubmitAsync">
+        <DataAnnotationsValidator />
+        <MudGrid Spacing="3">
+            <MudItem xs="12">
+                <MudTextField @bind-Value="_model.Name" Label="Name" For="() => _model.Name"
+                              Variant="Variant.Outlined" Required="true" />
+            </MudItem>
+            <MudItem xs="12">
+                <MudTextField @bind-Value="_model.Description" Label="Description"
+                              Variant="Variant.Outlined" Lines="3" />
+            </MudItem>
+            <MudItem xs="12" sm="6">
+                <MudNumericField @bind-Value="_model.Price" Label="Price" For="() => _model.Price"
+                                 Variant="Variant.Outlined" Format="F2" Min="0" />
+            </MudItem>
+            <MudItem xs="12" sm="6">
+                <MudSelect @bind-Value="_model.Category" Label="Category" Variant="Variant.Outlined">
+                    @foreach (var v in Enum.GetValues<SideDishCategory>()) {
+                        <MudSelectItem Value="@v">@v</MudSelectItem>
+                    }
+                </MudSelect>
+            </MudItem>
+            <MudItem xs="12" sm="6">
+                <MudSelect @bind-Value="_model.Currency" Label="Currency" Variant="Variant.Outlined">
+                    @foreach (var v in Enum.GetValues<Currency>()) {
+                        <MudSelectItem Value="@v">@v</MudSelectItem>
+                    }
+                </MudSelect>
+            </MudItem>
+        </MudGrid>
+        <div class="d-flex gap-3 mt-6">
+            <MudButton ButtonType="ButtonType.Submit" Variant="Variant.Filled" Color="Color.Warning"
+                       Disabled="_saving" StartIcon="@Icons.Material.Filled.Save">
+                @(_saving ? "Saving..." : "Create")
+            </MudButton>
+            <MudButton Href="side-dishes" Variant="Variant.Outlined" Color="Color.Default">Cancel</MudButton>
+        </div>
+    </EditForm>
+</MudPaper>
 
 @code {
     private readonly CreateSideDishesRequest _model = new();
     private bool _saving;
-    private string? _error;
 
     private async Task SubmitAsync() {
-        _saving = true; _error = null;
+        _saving = true;
         var result = await SideDishSvc.CreateAsync(_model);
         if (result.IsSuccess) Nav.NavigateTo("/side-dishes");
-        else { _error = result.ErrorMessage; _saving = false; }
+        else { Snackbar.Add(result.ErrorMessage!, Severity.Error); _saving = false; }
     }
 }
