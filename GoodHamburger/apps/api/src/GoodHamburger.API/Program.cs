@@ -21,6 +21,8 @@ namespace GoodHamburger.API {
 
             var app = builder.Build();
 
+            app.Services.MigrateDatabase();
+
             app.UseMiddleware<GlobalExceptionHandler>();
 
             // Configure the HTTP request pipeline.

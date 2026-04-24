@@ -1,0 +1,70 @@
+version: '3.8'
+
+services:
+
+  # ─── SQL Server ─────────────────────────────────────────────────────────────
+  sqlserver:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    container_name: goodhamburger-db
+    environment:
+      SA_PASSWORD: "GoodHamburger@2024"
+      ACCEPT_EULA: "Y"
+      MSSQL_PID: "Developer"
+    ports:
+      - "1433:1433"
+    volumes:
+      - sqlserver_data:/var/opt/mssql
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "/opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -P 'GoodHamburger@2024' -Q 'SELECT 1' -b -C",
+        ]
+      interval: 15s
+      timeout: 10s
+      retries: 5
+      start_period: 30s
+    networks:
+      - goodhamburger-net
+
+  # ─── REST API ────────────────────────────────────────────────────────────────
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile.api
+    container_name: goodhamburger-api
+    ports:
+      - "5000:8080"
+    environment:
+      ASPNETCORE_ENVIRONMENT: Development
+      ConnectionStrings__SQLServer: "Server=sqlserver;Database=GoodHamburger;User Id=sa;Password=GoodHamburger@2024;TrustServerCertificate=True;"
+      Configurations__InMemoryDataBase: "false"
+    depends_on:
+      sqlserver:
+        condition: service_healthy
+    networks:
+      - goodhamburger-net
+
+  # ─── Blazor Server (Web) ─────────────────────────────────────────────────────
+  web:
+    build:
+      context: .
+      dockerfile: Dockerfile.web
+    container_name: goodhamburger-web
+    ports:
+      - "5001:8080"
+    environment:
+      ASPNETCORE_ENVIRONMENT: Development
+      ApiSettings__BaseUrl: "http://api:8080"
+    depends_on:
+      - api
+    networks:
+      - goodhamburger-net
+
+# ─── Volumes & Networks ──────────────────────────────────────────────────────
+volumes:
+  sqlserver_data:
+
+networks:
+  goodhamburger-net:
+    driver: bridge

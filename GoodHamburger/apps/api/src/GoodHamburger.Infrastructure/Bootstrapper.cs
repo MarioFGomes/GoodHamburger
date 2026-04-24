@@ -8,6 +8,13 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace GoodHamburger.Infrastructure;
 public static class Bootstrapper {
+    public static void MigrateDatabase(this IServiceProvider services) {
+        using var scope = services.CreateScope();
+        var context = scope.ServiceProvider.GetRequiredService<GoodHamburgerContext>();
+        if (context.Database.IsRelational())
+            context.Database.Migrate();
+    }
+
     public static IServiceCollection AddInfrastructure(this IServiceCollection services, IConfiguration configurationManager) {
         AddContext(services, configurationManager);
         AddRepositories(services);
@@ -34,8 +41,7 @@ public static class Bootstrapper {
 
         if (useInMemory) {
             services.AddDbContext<GoodHamburgerContext>(options => options
-                .UseInMemoryDatabase("GoodHamburgerInMemory")
-                .UseLazyLoadingProxies());
+                    .UseInMemoryDatabase("GoodHamburgerInMemory"));
             return;
         }
 
@@ -44,7 +50,6 @@ public static class Bootstrapper {
 
         services.AddDbContext<GoodHamburgerContext>(dbContextOptions => {
             dbContextOptions.UseSqlServer(conectionString);
-            dbContextOptions.UseLazyLoadingProxies();
         });
 
             

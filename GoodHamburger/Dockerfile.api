@@ -1,0 +1,31 @@
+# ── Build stage ──────────────────────────────────────────────────────────────
+FROM mcr.microsoft.com/dotnet/sdk:7.0 AS build
+WORKDIR /src
+
+# Copy only .csproj files first — restores packages in a separate cached layer.
+# This layer only rebuilds when dependencies change, not on every code change.
+COPY apps/api/src/GoodHamburger.Domain/GoodHamburger.Domain.csproj \
+     apps/api/src/GoodHamburger.Domain/
+COPY apps/api/src/GoodHamburger.Application/GoodHamburger.Application.csproj \
+     apps/api/src/GoodHamburger.Application/
+COPY apps/api/src/GoodHamburger.Infrastructure/GoodHamburger.Infrastructure.csproj \
+     apps/api/src/GoodHamburger.Infrastructure/
+COPY apps/api/src/GoodHamburger.API/GoodHamburger.API.csproj \
+     apps/api/src/GoodHamburger.API/
+
+RUN dotnet restore apps/api/src/GoodHamburger.API/GoodHamburger.API.csproj
+
+# Copy source and publish (Release, self-contained DLLs)
+COPY apps/api/src/ apps/api/src/
+RUN dotnet publish apps/api/src/GoodHamburger.API/GoodHamburger.API.csproj \
+    -c Release -o /app/publish --no-restore
+
+# ── Runtime stage ─────────────────────────────────────────────────────────────
+FROM mcr.microsoft.com/dotnet/aspnet:7.0 AS final
+WORKDIR /app
+
+EXPOSE 8080
+ENV ASPNETCORE_URLS=http://+:8080
+
+COPY --from=build /app/publish .
+ENTRYPOINT ["dotnet", "GoodHamburger.API.dll"]

@@ -1,0 +1,67 @@
+@page "/customers/edit/{Id:guid}"
+@inject CustomerService CustomerSvc
+@inject NavigationManager Nav
+
+<PageTitle>Edit Customer</PageTitle>
+
+<h2>Edit Customer</h2>
+
+@if (_error is not null) {
+    <div class="alert alert-danger">@_error</div>
+}
+
+@if (_model is null) {
+    <p><em>Loading...</em></p>
+} else {
+    <EditForm Model="_model" OnValidSubmit="SubmitAsync">
+        <DataAnnotationsValidator />
+        <div class="mb-3">
+            <label class="form-label">First Name</label>
+            <InputText class="form-control" @bind-Value="_model.FirstName" />
+            <ValidationMessage For="() => _model.FirstName" />
+        </div>
+        <div class="mb-3">
+            <label class="form-label">Last Name</label>
+            <InputText class="form-control" @bind-Value="_model.LastName" />
+            <ValidationMessage For="() => _model.LastName" />
+        </div>
+        <div class="mb-3">
+            <label class="form-label">Address</label>
+            <InputText class="form-control" @bind-Value="_model.Address" />
+        </div>
+        <div class="mb-3">
+            <label class="form-label">Phone</label>
+            <InputText class="form-control" @bind-Value="_model.Phone" />
+            <ValidationMessage For="() => _model.Phone" />
+        </div>
+        <div class="mb-3">
+            <label class="form-label">Email</label>
+            <InputText class="form-control" @bind-Value="_model.Email" />
+            <ValidationMessage For="() => _model.Email" />
+        </div>
+        <button type="submit" class="btn btn-primary" disabled="@_saving">@(_saving ? "Saving..." : "Save")</button>
+        <a href="customers" class="btn btn-secondary ms-2">Cancel</a>
+    </EditForm>
+}
+
+@code {
+    [Parameter] public Guid Id { get; set; }
+    private UpdateCustomerRequest? _model;
+    private bool _saving;
+    private string? _error;
+
+    protected override async Task OnInitializedAsync() {
+        var result = await CustomerSvc.GetByIdAsync(Id);
+        if (result.IsSuccess && result.Data is not null) {
+            var d = result.Data;
+            _model = new() { FirstName = d.FirstName ?? "", LastName = d.LastName ?? "", Address = d.Address, Phone = d.Phone ?? "", Email = d.Email ?? "" };
+        } else { _error = result.ErrorMessage; }
+    }
+
+    private async Task SubmitAsync() {
+        _saving = true; _error = null;
+        var result = await CustomerSvc.UpdateAsync(Id, _model!);
+        if (result.IsSuccess) Nav.NavigateTo("/customers");
+        else { _error = result.ErrorMessage; _saving = false; }
+    }
+}

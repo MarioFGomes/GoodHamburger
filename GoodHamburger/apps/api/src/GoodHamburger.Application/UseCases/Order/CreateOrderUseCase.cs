@@ -55,8 +55,14 @@ public class CreateOrderUseCase : ICreateOrderUseCase {
         foreach (var sideDish in sideDishes)
             order.AddSideDish(sideDish.Id, sideDish.Category, sideDish.Price!.Value);
 
-        await _orderRepo.AddOneAsync(order, ct);
-        await _unitOfWork.SaveChangesAsync(ct);
+        await _unitOfWork.BeginTransactionAsync(ct);
+        try {
+            await _orderRepo.AddOneAsync(order, ct);
+            await _unitOfWork.CommitAsync(ct);
+        } catch {
+            await _unitOfWork.RollbackAsync(ct);
+            throw;
+        }
 
         _logger.LogInformation("Order created. Id={OrderId}, OrderNumber={OrderNumber}", order.Id, order.OrderNumber);
 

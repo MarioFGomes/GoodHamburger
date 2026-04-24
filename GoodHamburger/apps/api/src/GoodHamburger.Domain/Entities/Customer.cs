@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Drawing;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -12,4 +13,14 @@ public class Customer: EntityBase {
     public string? Phone { get; set; }
     public string? Email { get; set; }
 
+    public Customer(){}
+    public Customer(string firtsname, string lastName, string email, string phone, string address) {
+        FirstName = firtsname;
+        LastName = lastName;
+        Address = address;
+        Phone = phone;
+        Email = email;
+    }
+
 }
+

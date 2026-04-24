@@ -1,0 +1,90 @@
+@page "/orders/create"
+@inject OrderService OrderSvc
+@inject CustomerService CustomerSvc
+@inject MenuService MenuSvc
+@inject SideDishService SideDishSvc
+@inject NavigationManager Nav
+
+<PageTitle>New Order</PageTitle>
+<h2>New Order</h2>
+
+@if (_error is not null) { <div class="alert alert-danger">@_error</div> }
+
+@if (_loading) {
+    <p><em>Loading data...</em></p>
+} else {
+    <EditForm Model="_model" OnValidSubmit="SubmitAsync">
+        <DataAnnotationsValidator />
+
+        <div class="mb-3">
+            <label class="form-label">Customer</label>
+            <InputSelect class="form-select" @bind-Value="_model.CustomerId">
+                <option value="@Guid.Empty">-- Select --</option>
+                @foreach (var c in _customers) {
+                    <option value="@c.Id">@c.FirstName @c.LastName</option>
+                }
+            </InputSelect>
+            <ValidationMessage For="() => _model.CustomerId" />
+        </div>
+
+        <div class="mb-3">
+            <label class="form-label">Sandwich (Menu)</label>
+            <InputSelect class="form-select" @bind-Value="_model.MenuId">
+                <option value="@Guid.Empty">-- Select --</option>
+                @foreach (var m in _menus) {
+                    <option value="@m.Id">@m.Name — @m.Price?.ToString("F2") @m.Currency</option>
+                }
+            </InputSelect>
+            <ValidationMessage For="() => _model.MenuId" />
+        </div>
+
+        <div class="mb-3">
+            <label class="form-label">Side Dishes <small class="text-muted">(max 1 FRIES + 1 DRINK)</small></label>
+            @foreach (var s in _sideDishes) {
+                <div class="form-check">
+                    <input class="form-check-input" type="checkbox" id="sd_@s.Id"
+                           checked="@_model.SideDishIds.Contains(s.Id)"
+                           @onchange="e => ToggleSideDish(s.Id, (bool)e.Value!)" />
+                    <label class="form-check-label" for="sd_@s.Id">
+                        @s.Name (@s.Category) — @s.Price?.ToString("F2") @s.Currency
+                    </label>
+                </div>
+            }
+        </div>
+
+        <button type="submit" class="btn btn-primary" disabled="@_saving">@(_saving ? "Saving..." : "Create Order")</button>
+        <a href="orders" class="btn btn-secondary ms-2">Cancel</a>
+    </EditForm>
+}
+
+@code {
+    private readonly CreateOrderRequest _model = new();
+    private List<CustomerResponse> _customers = new();
+    private List<MenuResponse> _menus = new();
+    private List<SideDishesResponse> _sideDishes = new();
+    private bool _loading = true;
+    private bool _saving;
+    private string? _error;
+
+    protected override async Task OnInitializedAsync() {
+        var c = await CustomerSvc.GetAllAsync(1, 100);
+        var m = await MenuSvc.GetAllAsync(1, 100);
+        var s = await SideDishSvc.GetAllAsync(1, 100);
+        if (c.IsSuccess) _customers = c.Data!.Items;
+        if (m.IsSuccess) _menus = m.Data!.Items;
+        if (s.IsSuccess) _sideDishes = s.Data!.Items;
+        _loading = false;
+    }
+
+    private void ToggleSideDish(Guid id, bool selected) {
+        if (selected) _model.SideDishIds.Add(id);
+        else _model.SideDishIds.Remove(id);
+    }
+
+    private async Task SubmitAsync() {
+        _saving = true; _error = null;
+        var result = await OrderSvc.CreateAsync(_model);
+        if (result.IsSuccess) Nav.NavigateTo($"/orders/{result.Data!.Id}");
+        else { _error = result.ErrorMessage; _saving = false; }
+    }
+}

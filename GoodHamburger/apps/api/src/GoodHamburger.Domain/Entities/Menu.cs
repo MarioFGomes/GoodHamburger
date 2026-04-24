@@ -11,6 +11,6 @@ public class Menu: EntityBase {
     public string? Description { get; set; }
     public decimal? Price { get; set; }
     public Currency Currency { get; set; } = Currency.BRL;
-    public MenuStatus Status { get; set; } = MenuStatus.available;
+    public MenuStatus Status { get; set; } = MenuStatus.Available;
 
 }

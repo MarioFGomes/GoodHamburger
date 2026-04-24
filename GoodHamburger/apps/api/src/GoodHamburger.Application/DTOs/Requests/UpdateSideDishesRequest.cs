@@ -10,5 +10,5 @@ public class UpdateSideDishesRequest {
     public decimal? Price { get; set; }
     public SideDishCategory Category { get; set; }
     public Currency Currency { get; set; } = Currency.BRL;
-    public MenuStatus Status { get; set; } = MenuStatus.available;
+    public MenuStatus Status { get; set; } = MenuStatus.Available;
 }
