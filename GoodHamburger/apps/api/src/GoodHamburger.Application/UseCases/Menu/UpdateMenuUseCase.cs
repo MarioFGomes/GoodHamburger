@@ -33,6 +33,7 @@ public class UpdateMenuUseCase : IUpdateMenuUseCase {
 
         var menuToUpdate = request.ToDomain();
 
+        menuToUpdate.Id=menu.Id;
         await _menuRepo.ReplaceOneAsync(m => m.Id == menu.Id, menuToUpdate, ct);
         await _unitOfWork.SaveChangesAsync(ct);
 

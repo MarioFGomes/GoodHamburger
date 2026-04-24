@@ -35,6 +35,8 @@ public class UpdateCustomerUseCase : IUpdateCustomerUseCase {
 
         var customerToUpdate = request.ToDomain();
 
+        customerToUpdate.Id=customer.Id;
+        
         await _customerRepo.ReplaceOneAsync(i=>i.Id==customer.Id, customerToUpdate, ct);
 
         await _unitOfWork.SaveChangesAsync(ct);
