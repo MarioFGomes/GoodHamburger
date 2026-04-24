@@ -10,6 +10,7 @@ public class OrderSideDishes: EntityBase {
     public SideDishCategory Category { get; set; }
     public decimal UnitPrice { get; set; }
     public virtual OrderItem OrderItem { get; set; }
+    public virtual SideDishes? SideDishes { get; set; }
 
     protected OrderSideDishes()
     {}

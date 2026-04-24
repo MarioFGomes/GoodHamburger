@@ -28,7 +28,8 @@ public class MenuService {
     public async Task<ApiResult<MenuResponse>> CreateAsync(CreateMenuRequest request) {
         try {
             var response = await _http.PostAsJsonAsync("api/v1/menus", request, _json);
-            if (!response.IsSuccessStatusCode) return ApiResult<MenuResponse>.Failure(await response.Content.ReadAsStringAsync());
+            if (!response.IsSuccessStatusCode)
+                return ApiResult<MenuResponse>.Failure(ApiErrorParser.Extract(await response.Content.ReadAsStringAsync()));
             return ApiResult<MenuResponse>.Success((await response.Content.ReadFromJsonAsync<MenuResponse>(_json))!);
         } catch (Exception ex) { return ApiResult<MenuResponse>.Failure(ex.Message); }
     }
@@ -36,7 +37,8 @@ public class MenuService {
     public async Task<ApiResult<MenuResponse>> UpdateAsync(Guid id, UpdateMenuRequest request) {
         try {
             var response = await _http.PutAsJsonAsync($"api/v1/menus/{id}", request, _json);
-            if (!response.IsSuccessStatusCode) return ApiResult<MenuResponse>.Failure(await response.Content.ReadAsStringAsync());
+            if (!response.IsSuccessStatusCode)
+                return ApiResult<MenuResponse>.Failure(ApiErrorParser.Extract(await response.Content.ReadAsStringAsync()));
             return ApiResult<MenuResponse>.Success((await response.Content.ReadFromJsonAsync<MenuResponse>(_json))!);
         } catch (Exception ex) { return ApiResult<MenuResponse>.Failure(ex.Message); }
     }
@@ -44,7 +46,9 @@ public class MenuService {
     public async Task<ApiResult<bool>> DeleteAsync(Guid id) {
         try {
             var response = await _http.DeleteAsync($"api/v1/menus/{id}");
-            return response.IsSuccessStatusCode ? ApiResult<bool>.Success(true) : ApiResult<bool>.Failure(await response.Content.ReadAsStringAsync());
+            return response.IsSuccessStatusCode
+                ? ApiResult<bool>.Success(true)
+                : ApiResult<bool>.Failure(ApiErrorParser.Extract(await response.Content.ReadAsStringAsync()));
         } catch (Exception ex) { return ApiResult<bool>.Failure(ex.Message); }
     }
 }

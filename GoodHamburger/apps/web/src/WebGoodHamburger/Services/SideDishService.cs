@@ -28,7 +28,8 @@ public class SideDishService {
     public async Task<ApiResult<SideDishesResponse>> CreateAsync(CreateSideDishesRequest request) {
         try {
             var response = await _http.PostAsJsonAsync("api/v1/side-dishes", request, _json);
-            if (!response.IsSuccessStatusCode) return ApiResult<SideDishesResponse>.Failure(await response.Content.ReadAsStringAsync());
+            if (!response.IsSuccessStatusCode)
+                return ApiResult<SideDishesResponse>.Failure(ApiErrorParser.Extract(await response.Content.ReadAsStringAsync()));
             return ApiResult<SideDishesResponse>.Success((await response.Content.ReadFromJsonAsync<SideDishesResponse>(_json))!);
         } catch (Exception ex) { return ApiResult<SideDishesResponse>.Failure(ex.Message); }
     }
@@ -36,7 +37,8 @@ public class SideDishService {
     public async Task<ApiResult<SideDishesResponse>> UpdateAsync(Guid id, UpdateSideDishesRequest request) {
         try {
             var response = await _http.PutAsJsonAsync($"api/v1/side-dishes/{id}", request, _json);
-            if (!response.IsSuccessStatusCode) return ApiResult<SideDishesResponse>.Failure(await response.Content.ReadAsStringAsync());
+            if (!response.IsSuccessStatusCode)
+                return ApiResult<SideDishesResponse>.Failure(ApiErrorParser.Extract(await response.Content.ReadAsStringAsync()));
             return ApiResult<SideDishesResponse>.Success((await response.Content.ReadFromJsonAsync<SideDishesResponse>(_json))!);
         } catch (Exception ex) { return ApiResult<SideDishesResponse>.Failure(ex.Message); }
     }
@@ -44,7 +46,9 @@ public class SideDishService {
     public async Task<ApiResult<bool>> DeleteAsync(Guid id) {
         try {
             var response = await _http.DeleteAsync($"api/v1/side-dishes/{id}");
-            return response.IsSuccessStatusCode ? ApiResult<bool>.Success(true) : ApiResult<bool>.Failure(await response.Content.ReadAsStringAsync());
+            return response.IsSuccessStatusCode
+                ? ApiResult<bool>.Success(true)
+                : ApiResult<bool>.Failure(ApiErrorParser.Extract(await response.Content.ReadAsStringAsync()));
         } catch (Exception ex) { return ApiResult<bool>.Failure(ex.Message); }
     }
 }

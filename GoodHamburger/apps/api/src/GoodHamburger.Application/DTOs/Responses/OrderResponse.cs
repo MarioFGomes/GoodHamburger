@@ -5,6 +5,7 @@ public class OrderResponse {
     public Guid Id { get; set; }
     public int OrderNumber { get; set; }
     public Guid CustomerId { get; set; }
+    public string CustomerName { get; set; } = string.Empty;
     public decimal Subtotal { get; set; }
     public decimal Discount { get; set; }
     public decimal Total { get; set; }
