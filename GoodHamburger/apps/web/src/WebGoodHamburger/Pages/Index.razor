@@ -4,68 +4,225 @@
 @inject SideDishService SideDishSvc
 @inject OrderService OrderSvc
 
-<PageTitle>Good Hamburger — Dashboard</PageTitle>
-
-<h1 class="mb-4">Dashboard</h1>
+<PageTitle>GoodHamburger — Dashboard</PageTitle>
 
 @if (_loading) {
-    <p><em>Loading...</em></p>
+    <div class="flex items-center justify-center py-24">
+        <div class="flex items-center gap-3 text-zinc-400">
+            <span class="material-symbols-outlined animate-spin">refresh</span>
+            <span class="text-sm">Loading dashboard...</span>
+        </div>
+    </div>
 } else {
-    <div class="row g-4">
-        <div class="col-sm-6 col-lg-3">
-            <div class="card text-white bg-primary h-100">
-                <div class="card-body">
-                    <h5 class="card-title">Customers</h5>
-                    <p class="display-4">@_customers</p>
-                </div>
-                <div class="card-footer"><a href="customers" class="text-white">View all →</a></div>
-            </div>
+    <div class="space-y-6 max-w-6xl mx-auto">
+
+        <!-- Page Title -->
+        <div>
+            <h1 class="text-2xl font-bold text-zinc-900 font-lexend">Operational Overview</h1>
+            <p class="text-sm text-zinc-500 mt-1">Welcome back. Here's what's happening today.</p>
         </div>
-        <div class="col-sm-6 col-lg-3">
-            <div class="card text-white bg-success h-100">
-                <div class="card-body">
-                    <h5 class="card-title">Menus</h5>
-                    <p class="display-4">@_menus</p>
+
+        <!-- Metric Cards -->
+        <section class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+
+            <a href="orders" class="bg-white p-6 rounded-xl shadow-sm border border-zinc-100 hover:shadow-md transition-shadow block">
+                <div class="flex justify-between items-start mb-4">
+                    <div class="p-2 bg-amber-50 rounded-lg">
+                        <span class="material-symbols-outlined text-amber-600" style="font-variation-settings:'FILL' 1">pending_actions</span>
+                    </div>
+                    <span class="text-xs font-medium text-zinc-400 bg-zinc-50 px-2 py-1 rounded-full">Total</span>
                 </div>
-                <div class="card-footer"><a href="menus" class="text-white">View all →</a></div>
-            </div>
-        </div>
-        <div class="col-sm-6 col-lg-3">
-            <div class="card text-white bg-warning h-100">
-                <div class="card-body">
-                    <h5 class="card-title">Side Dishes</h5>
-                    <p class="display-4">@_sideDishes</p>
+                <p class="text-xs text-zinc-500 uppercase tracking-wider font-medium">Orders</p>
+                <h3 class="text-4xl font-bold text-zinc-900 font-lexend mt-1">@_orders</h3>
+            </a>
+
+            <a href="customers" class="bg-white p-6 rounded-xl shadow-sm border border-zinc-100 hover:shadow-md transition-shadow block">
+                <div class="flex justify-between items-start mb-4">
+                    <div class="p-2 bg-primary-container rounded-lg">
+                        <span class="material-symbols-outlined text-secondary-fixed" style="font-variation-settings:'FILL' 1">group</span>
+                    </div>
+                    <span class="text-xs font-medium text-zinc-400 bg-zinc-50 px-2 py-1 rounded-full">Total</span>
                 </div>
-                <div class="card-footer"><a href="side-dishes" class="text-white">View all →</a></div>
-            </div>
-        </div>
-        <div class="col-sm-6 col-lg-3">
-            <div class="card text-white bg-danger h-100">
-                <div class="card-body">
-                    <h5 class="card-title">Orders</h5>
-                    <p class="display-4">@_orders</p>
+                <p class="text-xs text-zinc-500 uppercase tracking-wider font-medium">Customers</p>
+                <h3 class="text-4xl font-bold text-zinc-900 font-lexend mt-1">@_customers</h3>
+            </a>
+
+            <a href="menus" class="bg-white p-6 rounded-xl shadow-sm border border-zinc-100 hover:shadow-md transition-shadow block">
+                <div class="flex justify-between items-start mb-4">
+                    <div class="p-2 bg-stone-100 rounded-lg">
+                        <span class="material-symbols-outlined text-zinc-600" style="font-variation-settings:'FILL' 1">restaurant_menu</span>
+                    </div>
+                    <span class="text-xs font-medium text-zinc-400 bg-zinc-50 px-2 py-1 rounded-full">Total</span>
                 </div>
-                <div class="card-footer"><a href="orders" class="text-white">View all →</a></div>
-            </div>
+                <p class="text-xs text-zinc-500 uppercase tracking-wider font-medium">Menu Items</p>
+                <h3 class="text-4xl font-bold text-zinc-900 font-lexend mt-1">@_menus</h3>
+            </a>
+
+            <a href="side-dishes" class="bg-white p-6 rounded-xl shadow-sm border border-zinc-100 hover:shadow-md transition-shadow block">
+                <div class="flex justify-between items-start mb-4">
+                    <div class="p-2 bg-secondary-container/20 rounded-lg">
+                        <span class="material-symbols-outlined text-on-secondary-container" style="font-variation-settings:'FILL' 1">fastfood</span>
+                    </div>
+                    <span class="text-xs font-medium text-zinc-400 bg-zinc-50 px-2 py-1 rounded-full">Total</span>
+                </div>
+                <p class="text-xs text-zinc-500 uppercase tracking-wider font-medium">Side Dishes</p>
+                <h3 class="text-4xl font-bold text-zinc-900 font-lexend mt-1">@_sideDishes</h3>
+            </a>
+
+        </section>
+
+        <!-- Main Grid -->
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+
+            <!-- Recent Orders Table -->
+            <section class="lg:col-span-2 bg-white rounded-xl shadow-sm border border-zinc-100 overflow-hidden">
+                <div class="px-6 py-5 border-b border-zinc-100 flex justify-between items-center">
+                    <h3 class="text-base font-semibold text-zinc-900 font-lexend">Recent Orders</h3>
+                    <a href="orders" class="text-sm font-medium text-secondary flex items-center gap-1 hover:text-on-secondary-container transition-colors">
+                        View All
+                        <span class="material-symbols-outlined" style="font-size:16px">arrow_forward</span>
+                    </a>
+                </div>
+
+                @if (_recentOrders.Count == 0) {
+                    <div class="flex flex-col items-center justify-center py-12 text-zinc-400">
+                        <span class="material-symbols-outlined text-4xl mb-3">receipt_long</span>
+                        <p class="text-sm">No orders yet</p>
+                    </div>
+                } else {
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left">
+                            <thead class="bg-stone-50 border-b border-zinc-100">
+                                <tr>
+                                    <th class="px-6 py-3 text-xs text-zinc-500 uppercase tracking-wider font-semibold">Order</th>
+                                    <th class="px-6 py-3 text-xs text-zinc-500 uppercase tracking-wider font-semibold">Status</th>
+                                    <th class="px-6 py-3 text-xs text-zinc-500 uppercase tracking-wider font-semibold">Discount</th>
+                                    <th class="px-6 py-3 text-xs text-zinc-500 uppercase tracking-wider font-semibold text-right">Total</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-zinc-50">
+                                @foreach (var o in _recentOrders) {
+                                    <tr class="hover:bg-stone-50/50 transition-colors">
+                                        <td class="px-6 py-4">
+                                            <a href="orders/@o.Id" class="font-semibold text-zinc-900 hover:text-secondary transition-colors">
+                                                #GH-@o.OrderNumber
+                                            </a>
+                                            <p class="text-xs text-zinc-400 mt-0.5">@o.CreatedAt.ToString("dd MMM, HH:mm")</p>
+                                        </td>
+                                        <td class="px-6 py-4">
+                                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium @StatusClass(o.Status)">
+                                                @o.Status
+                                            </span>
+                                        </td>
+                                        <td class="px-6 py-4 text-sm text-zinc-600">
+                                            @if (o.Discount > 0) {
+                                                <span class="text-emerald-600 font-medium">-@o.Discount%</span>
+                                            } else {
+                                                <span class="text-zinc-400">—</span>
+                                            }
+                                        </td>
+                                        <td class="px-6 py-4 text-right font-semibold text-zinc-900">R$ @o.Total.ToString("F2")</td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                }
+            </section>
+
+            <!-- Sidebar: Quick Actions + Bar Chart -->
+            <aside class="space-y-4">
+
+                <!-- Quick Actions -->
+                <div class="bg-primary-container text-white p-6 rounded-xl shadow-sm">
+                    <h3 class="text-base font-semibold mb-5 flex items-center gap-2 font-lexend">
+                        <span class="material-symbols-outlined text-secondary-container" style="font-variation-settings:'FILL' 1">bolt</span>
+                        Quick Actions
+                    </h3>
+                    <div class="space-y-2">
+                        <a href="orders/create"
+                           class="flex items-center gap-3 w-full p-4 bg-zinc-800 hover:bg-zinc-700 rounded-xl transition-colors text-left group">
+                            <span class="material-symbols-outlined text-secondary-container group-hover:scale-110 transition-transform" style="font-variation-settings:'FILL' 1">add_shopping_cart</span>
+                            <div>
+                                <p class="font-medium text-sm">Create New Order</p>
+                                <p class="text-xs text-zinc-400">Manual entry for walk-ins</p>
+                            </div>
+                        </a>
+                        <a href="customers/create"
+                           class="flex items-center gap-3 w-full p-4 bg-zinc-800 hover:bg-zinc-700 rounded-xl transition-colors text-left group">
+                            <span class="material-symbols-outlined text-zinc-400 group-hover:scale-110 transition-transform" style="font-variation-settings:'FILL' 1">person_add</span>
+                            <div>
+                                <p class="font-medium text-sm">Add Customer</p>
+                                <p class="text-xs text-zinc-400">Register new client</p>
+                            </div>
+                        </a>
+                        <a href="menus/create"
+                           class="flex items-center gap-3 w-full p-4 bg-zinc-800 hover:bg-zinc-700 rounded-xl transition-colors text-left group">
+                            <span class="material-symbols-outlined text-zinc-400 group-hover:scale-110 transition-transform">edit_note</span>
+                            <div>
+                                <p class="font-medium text-sm">Update Menu</p>
+                                <p class="text-xs text-zinc-400">Add or edit menu items</p>
+                            </div>
+                        </a>
+                    </div>
+                </div>
+
+                <!-- Orders/Hour Visual -->
+                <div class="bg-white p-6 rounded-xl shadow-sm border border-zinc-100">
+                    <div class="flex justify-between items-center mb-5">
+                        <h3 class="text-xs text-zinc-500 uppercase tracking-widest font-semibold">Orders / Hour</h3>
+                        <span class="text-xs text-zinc-400">Live Feed</span>
+                    </div>
+                    <div class="flex items-end justify-between h-24 gap-1.5">
+                        <div class="w-full bg-stone-100 rounded-t-sm h-1/4 relative"><div class="absolute inset-0 bg-secondary-container/40 rounded-t-sm"></div></div>
+                        <div class="w-full bg-stone-100 rounded-t-sm h-2/5 relative"><div class="absolute inset-0 bg-secondary-container/55 rounded-t-sm"></div></div>
+                        <div class="w-full bg-stone-100 rounded-t-sm h-3/4 relative"><div class="absolute inset-0 bg-secondary-container rounded-t-sm shadow-[0_-3px_10px_rgba(254,174,44,0.3)]"></div></div>
+                        <div class="w-full bg-stone-100 rounded-t-sm h-1/2 relative"><div class="absolute inset-0 bg-secondary-container/50 rounded-t-sm"></div></div>
+                        <div class="w-full bg-stone-100 rounded-t-sm h-2/3 relative"><div class="absolute inset-0 bg-secondary-container/65 rounded-t-sm"></div></div>
+                        <div class="w-full bg-stone-100 rounded-t-sm h-full relative"><div class="absolute inset-0 bg-primary-container rounded-t-sm"></div></div>
+                    </div>
+                    <div class="mt-3 pt-3 border-t border-zinc-50 flex justify-between text-[10px] text-zinc-400 font-medium uppercase">
+                        <span>12:00</span>
+                        <span>14:00</span>
+                        <span>16:00</span>
+                        <span>Now</span>
+                    </div>
+                </div>
+
+            </aside>
         </div>
+
     </div>
 }
 
 @code {
     private bool _loading = true;
     private int _customers, _menus, _sideDishes, _orders;
+    private List<OrderResponse> _recentOrders = new();
 
     protected override async Task OnInitializedAsync() {
-        var c = await CustomerSvc.GetAllAsync(1, 1);
-        var m = await MenuSvc.GetAllAsync(1, 1);
-        var s = await SideDishSvc.GetAllAsync(1, 1);
-        var o = await OrderSvc.GetAllAsync(1, 1);
+        var c       = await CustomerSvc.GetAllAsync(1, 1);
+        var m       = await MenuSvc.GetAllAsync(1, 1);
+        var s       = await SideDishSvc.GetAllAsync(1, 1);
+        var o       = await OrderSvc.GetAllAsync(1, 1);
+        var recent  = await OrderSvc.GetAllAsync(1, 6);
 
-        if (c.IsSuccess) _customers = c.Data!.TotalItems;
-        if (m.IsSuccess) _menus = m.Data!.TotalItems;
-        if (s.IsSuccess) _sideDishes = s.Data!.TotalItems;
-        if (o.IsSuccess) _orders = o.Data!.TotalItems;
+        if (c.IsSuccess)      _customers    = c.Data!.TotalItems;
+        if (m.IsSuccess)      _menus        = m.Data!.TotalItems;
+        if (s.IsSuccess)      _sideDishes   = s.Data!.TotalItems;
+        if (o.IsSuccess)      _orders       = o.Data!.TotalItems;
+        if (recent.IsSuccess) _recentOrders = recent.Data!.Items;
 
         _loading = false;
     }
+
+    private static string StatusClass(OrderStatus s) => s switch {
+        OrderStatus.PENDING   => "bg-amber-100 text-amber-800",
+        OrderStatus.CONFIRMED => "bg-blue-100 text-blue-800",
+        OrderStatus.CANCELLED => "bg-zinc-100 text-zinc-600",
+        OrderStatus.PAID      => "bg-emerald-100 text-emerald-800",
+        OrderStatus.READY     => "bg-cyan-100 text-cyan-800",
+        OrderStatus.DELIVERED => "bg-zinc-800 text-white",
+        _                     => "bg-zinc-100 text-zinc-600"
+    };
 }

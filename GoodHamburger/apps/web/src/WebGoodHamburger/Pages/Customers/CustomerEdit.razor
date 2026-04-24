@@ -2,47 +2,82 @@
 @inject CustomerService CustomerSvc
 @inject NavigationManager Nav
 
-<PageTitle>Edit Customer</PageTitle>
+<PageTitle>Edit Customer — GoodHamburger</PageTitle>
 
-<h2>Edit Customer</h2>
+<div class="max-w-2xl mx-auto space-y-6">
 
-@if (_error is not null) {
-    <div class="alert alert-danger">@_error</div>
-}
+    <div class="flex items-center gap-4">
+        <a href="/customers" class="p-2 hover:bg-stone-100 rounded-lg transition-colors text-zinc-500">
+            <span class="material-symbols-outlined">arrow_back</span>
+        </a>
+        <div>
+            <h1 class="text-2xl font-bold text-zinc-900 font-lexend">Edit Customer</h1>
+            <p class="text-sm text-zinc-500 mt-0.5">Update the customer information</p>
+        </div>
+    </div>
 
-@if (_model is null) {
-    <p><em>Loading...</em></p>
-} else {
-    <EditForm Model="_model" OnValidSubmit="SubmitAsync">
-        <DataAnnotationsValidator />
-        <div class="mb-3">
-            <label class="form-label">First Name</label>
-            <InputText class="form-control" @bind-Value="_model.FirstName" />
-            <ValidationMessage For="() => _model.FirstName" />
+    @if (_error is not null) {
+        <div class="flex items-center gap-3 p-4 bg-red-50 border border-red-200 rounded-xl text-red-700">
+            <span class="material-symbols-outlined text-red-500">error</span>
+            <p class="text-sm">@_error</p>
         </div>
-        <div class="mb-3">
-            <label class="form-label">Last Name</label>
-            <InputText class="form-control" @bind-Value="_model.LastName" />
-            <ValidationMessage For="() => _model.LastName" />
+    }
+
+    @if (_model is null && _error is null) {
+        <div class="flex items-center justify-center py-16">
+            <div class="flex items-center gap-3 text-zinc-400">
+                <span class="material-symbols-outlined animate-spin">refresh</span>
+                <span class="text-sm">Loading customer...</span>
+            </div>
         </div>
-        <div class="mb-3">
-            <label class="form-label">Address</label>
-            <InputText class="form-control" @bind-Value="_model.Address" />
+    } else if (_model is not null) {
+        <div class="bg-white rounded-xl shadow-sm border border-zinc-100 p-6">
+            <EditForm Model="_model" OnValidSubmit="SubmitAsync">
+                <DataAnnotationsValidator />
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div class="space-y-1">
+                        <label class="block text-sm font-medium text-zinc-700">First Name</label>
+                        <InputText class="gh-input" @bind-Value="_model.FirstName" />
+                        <ValidationMessage For="() => _model.FirstName" />
+                    </div>
+                    <div class="space-y-1">
+                        <label class="block text-sm font-medium text-zinc-700">Last Name</label>
+                        <InputText class="gh-input" @bind-Value="_model.LastName" />
+                        <ValidationMessage For="() => _model.LastName" />
+                    </div>
+                    <div class="space-y-1 sm:col-span-2">
+                        <label class="block text-sm font-medium text-zinc-700">Email</label>
+                        <InputText class="gh-input" @bind-Value="_model.Email" />
+                        <ValidationMessage For="() => _model.Email" />
+                    </div>
+                    <div class="space-y-1">
+                        <label class="block text-sm font-medium text-zinc-700">Phone</label>
+                        <InputText class="gh-input" @bind-Value="_model.Phone" />
+                        <ValidationMessage For="() => _model.Phone" />
+                    </div>
+                    <div class="space-y-1">
+                        <label class="block text-sm font-medium text-zinc-700">Address <span class="text-zinc-400 font-normal">(optional)</span></label>
+                        <InputText class="gh-input" @bind-Value="_model.Address" />
+                    </div>
+                </div>
+
+                <div class="flex gap-3 mt-6 pt-6 border-t border-zinc-100">
+                    <button type="submit" class="gh-btn gh-btn-primary" disabled="@_saving">
+                        @if (_saving) {
+                            <span class="material-symbols-outlined animate-spin" style="font-size:16px">refresh</span>
+                            <span>Saving...</span>
+                        } else {
+                            <span class="material-symbols-outlined" style="font-size:16px">check</span>
+                            <span>Save Changes</span>
+                        }
+                    </button>
+                    <a href="/customers" class="gh-btn gh-btn-secondary">Cancel</a>
+                </div>
+            </EditForm>
         </div>
-        <div class="mb-3">
-            <label class="form-label">Phone</label>
-            <InputText class="form-control" @bind-Value="_model.Phone" />
-            <ValidationMessage For="() => _model.Phone" />
-        </div>
-        <div class="mb-3">
-            <label class="form-label">Email</label>
-            <InputText class="form-control" @bind-Value="_model.Email" />
-            <ValidationMessage For="() => _model.Email" />
-        </div>
-        <button type="submit" class="btn btn-primary" disabled="@_saving">@(_saving ? "Saving..." : "Save")</button>
-        <a href="customers" class="btn btn-secondary ms-2">Cancel</a>
-    </EditForm>
-}
+    }
+
+</div>
 
 @code {
     [Parameter] public Guid Id { get; set; }

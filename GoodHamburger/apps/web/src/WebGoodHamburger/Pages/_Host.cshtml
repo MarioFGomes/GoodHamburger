@@ -1,21 +1,94 @@
-﻿@page "/"
+@page "/"
 @using Microsoft.AspNetCore.Components.Web
 @namespace WebGoodHamburger.Pages
 @addTagHelper *, Microsoft.AspNetCore.Mvc.TagHelpers
 
 <!DOCTYPE html>
-<html lang="en">
+<html class="light" lang="pt">
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <base href="~/" />
-    <link rel="stylesheet" href="css/bootstrap/bootstrap.min.css" />
-    <link href="css/site.css" rel="stylesheet" />
+    <title>GoodHamburger | Dashboard</title>
+
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Lexend:wght@300;400;500;600;700;800&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet" />
     <link href="WebGoodHamburger.styles.css" rel="stylesheet" />
-    <link rel="icon" type="image/png" href="favicon.png"/>
+    <link rel="icon" type="image/png" href="favicon.png" />
+
+    <style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+            vertical-align: middle;
+            line-height: 1;
+        }
+        .textured-bg {
+            background-color: #fdf8f7;
+            background-image: radial-gradient(#1c1b1b05 1px, transparent 0);
+            background-size: 24px 24px;
+        }
+        #blazor-error-ui {
+            background: lightyellow;
+            bottom: 0;
+            box-shadow: 0 -1px 2px rgba(0,0,0,0.2);
+            display: none;
+            left: 0;
+            padding: 0.6rem 1.25rem 0.7rem 1.25rem;
+            position: fixed;
+            width: 100%;
+            z-index: 9999;
+        }
+        #blazor-error-ui .dismiss {
+            cursor: pointer;
+            position: absolute;
+            right: 0.75rem;
+            top: 0.5rem;
+        }
+    </style>
+
+    <script>
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "background":             "#fdf8f7",
+                        "surface":                "#fdf8f7",
+                        "surface-container":      "#f1edec",
+                        "surface-container-low":  "#f7f3f1",
+                        "on-background":          "#1c1b1b",
+                        "on-surface":             "#1c1b1b",
+                        "on-surface-variant":     "#4d4540",
+                        "outline":                "#7e756f",
+                        "outline-variant":        "#cfc4bd",
+                        "primary":                "#181512",
+                        "primary-container":      "#2d2926",
+                        "on-primary":             "#ffffff",
+                        "on-primary-container":   "#96908b",
+                        "secondary":              "#835500",
+                        "secondary-container":    "#feae2c",
+                        "secondary-fixed":        "#ffddb4",
+                        "secondary-fixed-dim":    "#ffb955",
+                        "on-secondary":           "#ffffff",
+                        "on-secondary-container": "#6b4500",
+                        "error":                  "#ba1a1a",
+                        "error-container":        "#ffdad6",
+                        "on-error":               "#ffffff",
+                        "on-error-container":     "#93000a",
+                    },
+                    fontFamily: {
+                        "lexend": ["Lexend", "sans-serif"],
+                        "inter":  ["Inter", "sans-serif"],
+                    }
+                },
+            },
+        }
+    </script>
+
     <component type="typeof(HeadOutlet)" render-mode="ServerPrerendered" />
 </head>
-<body>
+<body class="textured-bg text-on-background font-inter min-h-screen">
     <component type="typeof(App)" render-mode="ServerPrerendered" />
 
     <div id="blazor-error-ui">

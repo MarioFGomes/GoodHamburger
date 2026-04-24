@@ -2,46 +2,86 @@
 @inject MenuService MenuSvc
 @inject NavigationManager Nav
 
-<PageTitle>Edit Menu</PageTitle>
-<h2>Edit Menu</h2>
+<PageTitle>Edit Menu Item — GoodHamburger</PageTitle>
 
-@if (_error is not null) { <div class="alert alert-danger">@_error</div> }
+<div class="max-w-2xl mx-auto space-y-6">
 
-@if (_model is null) {
-    <p><em>Loading...</em></p>
-} else {
-    <EditForm Model="_model" OnValidSubmit="SubmitAsync">
-        <DataAnnotationsValidator />
-        <div class="mb-3">
-            <label class="form-label">Name</label>
-            <InputText class="form-control" @bind-Value="_model.Name" />
-            <ValidationMessage For="() => _model.Name" />
+    <div class="flex items-center gap-4">
+        <a href="/menus" class="p-2 hover:bg-stone-100 rounded-lg transition-colors text-zinc-500">
+            <span class="material-symbols-outlined">arrow_back</span>
+        </a>
+        <div>
+            <h1 class="text-2xl font-bold text-zinc-900 font-lexend">Edit Menu Item</h1>
+            <p class="text-sm text-zinc-500 mt-0.5">Update name, pricing or availability</p>
         </div>
-        <div class="mb-3">
-            <label class="form-label">Description</label>
-            <InputTextArea class="form-control" @bind-Value="_model.Description" rows="2" />
+    </div>
+
+    @if (_error is not null) {
+        <div class="flex items-center gap-3 p-4 bg-red-50 border border-red-200 rounded-xl text-red-700">
+            <span class="material-symbols-outlined text-red-500">error</span>
+            <p class="text-sm">@_error</p>
         </div>
-        <div class="mb-3">
-            <label class="form-label">Price</label>
-            <InputNumber class="form-control" @bind-Value="_model.Price" />
-            <ValidationMessage For="() => _model.Price" />
+    }
+
+    @if (_model is null && _error is null) {
+        <div class="flex items-center justify-center py-16">
+            <div class="flex items-center gap-3 text-zinc-400">
+                <span class="material-symbols-outlined animate-spin">refresh</span>
+                <span class="text-sm">Loading item...</span>
+            </div>
         </div>
-        <div class="mb-3">
-            <label class="form-label">Currency</label>
-            <InputSelect class="form-select" @bind-Value="_model.Currency">
-                @foreach (var v in Enum.GetValues<Currency>()) { <option value="@v">@v</option> }
-            </InputSelect>
+    } else if (_model is not null) {
+        <div class="bg-white rounded-xl shadow-sm border border-zinc-100 p-6">
+            <EditForm Model="_model" OnValidSubmit="SubmitAsync">
+                <DataAnnotationsValidator />
+                <div class="space-y-4">
+                    <div class="space-y-1">
+                        <label class="block text-sm font-medium text-zinc-700">Name</label>
+                        <InputText class="gh-input" @bind-Value="_model.Name" />
+                        <ValidationMessage For="() => _model.Name" />
+                    </div>
+                    <div class="space-y-1">
+                        <label class="block text-sm font-medium text-zinc-700">Description <span class="text-zinc-400 font-normal">(optional)</span></label>
+                        <InputTextArea class="gh-textarea" @bind-Value="_model.Description" rows="3" />
+                    </div>
+                    <div class="grid grid-cols-2 gap-4">
+                        <div class="space-y-1">
+                            <label class="block text-sm font-medium text-zinc-700">Price</label>
+                            <InputNumber class="gh-input" @bind-Value="_model.Price" />
+                            <ValidationMessage For="() => _model.Price" />
+                        </div>
+                        <div class="space-y-1">
+                            <label class="block text-sm font-medium text-zinc-700">Currency</label>
+                            <InputSelect class="gh-select" @bind-Value="_model.Currency">
+                                @foreach (var v in Enum.GetValues<Currency>()) { <option value="@v">@v</option> }
+                            </InputSelect>
+                        </div>
+                    </div>
+                    <div class="space-y-1">
+                        <label class="block text-sm font-medium text-zinc-700">Status</label>
+                        <InputSelect class="gh-select" @bind-Value="_model.Status">
+                            @foreach (var v in Enum.GetValues<MenuStatus>()) { <option value="@v">@v</option> }
+                        </InputSelect>
+                    </div>
+                </div>
+
+                <div class="flex gap-3 mt-6 pt-6 border-t border-zinc-100">
+                    <button type="submit" class="gh-btn gh-btn-primary" disabled="@_saving">
+                        @if (_saving) {
+                            <span class="material-symbols-outlined animate-spin" style="font-size:16px">refresh</span>
+                            <span>Saving...</span>
+                        } else {
+                            <span class="material-symbols-outlined" style="font-size:16px">check</span>
+                            <span>Save Changes</span>
+                        }
+                    </button>
+                    <a href="/menus" class="gh-btn gh-btn-secondary">Cancel</a>
+                </div>
+            </EditForm>
         </div>
-        <div class="mb-3">
-            <label class="form-label">Status</label>
-            <InputSelect class="form-select" @bind-Value="_model.Status">
-                @foreach (var v in Enum.GetValues<MenuStatus>()) { <option value="@v">@v</option> }
-            </InputSelect>
-        </div>
-        <button type="submit" class="btn btn-primary" disabled="@_saving">@(_saving ? "Saving..." : "Save")</button>
-        <a href="menus" class="btn btn-secondary ms-2">Cancel</a>
-    </EditForm>
-}
+    }
+
+</div>
 
 @code {
     [Parameter] public Guid Id { get; set; }

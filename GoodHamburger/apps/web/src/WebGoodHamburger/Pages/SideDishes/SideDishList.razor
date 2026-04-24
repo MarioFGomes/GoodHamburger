@@ -2,39 +2,103 @@
 @inject SideDishService SideDishSvc
 @inject IJSRuntime JS
 
-<PageTitle>Side Dishes</PageTitle>
+<PageTitle>Side Dishes — GoodHamburger</PageTitle>
 
-<div class="d-flex justify-content-between align-items-center mb-3">
-    <h2>Side Dishes</h2>
-    <a href="side-dishes/create" class="btn btn-primary">+ New Side Dish</a>
+<div class="space-y-6 max-w-5xl mx-auto">
+
+    <div class="flex justify-between items-center">
+        <div>
+            <h1 class="text-2xl font-bold text-zinc-900 font-lexend">Side Dishes</h1>
+            <p class="text-sm text-zinc-500 mt-1">Manage fries and drinks available for orders</p>
+        </div>
+        <a href="side-dishes/create" class="gh-btn gh-btn-primary">
+            <span class="material-symbols-outlined" style="font-size:18px">add</span>
+            New Side Dish
+        </a>
+    </div>
+
+    @if (_error is not null) {
+        <div class="flex items-center gap-3 p-4 bg-red-50 border border-red-200 rounded-xl text-red-700">
+            <span class="material-symbols-outlined text-red-500">error</span>
+            <p class="text-sm">@_error</p>
+        </div>
+    }
+
+    <div class="bg-white rounded-xl shadow-sm border border-zinc-100 overflow-hidden">
+        @if (_loading) {
+            <div class="flex items-center justify-center py-16">
+                <div class="flex items-center gap-3 text-zinc-400">
+                    <span class="material-symbols-outlined animate-spin">refresh</span>
+                    <span class="text-sm">Loading side dishes...</span>
+                </div>
+            </div>
+        } else if (_paged is null || _paged.Items.Count == 0) {
+            <div class="flex flex-col items-center justify-center py-16 text-zinc-400">
+                <span class="material-symbols-outlined text-5xl mb-3">fastfood</span>
+                <p class="text-sm font-medium">No side dishes yet</p>
+            </div>
+        } else {
+            <div class="overflow-x-auto">
+                <table class="w-full text-left">
+                    <thead class="bg-stone-50 border-b border-zinc-100">
+                        <tr>
+                            <th class="px-6 py-4 text-xs text-zinc-500 uppercase tracking-wider font-semibold">Name</th>
+                            <th class="px-6 py-4 text-xs text-zinc-500 uppercase tracking-wider font-semibold">Category</th>
+                            <th class="px-6 py-4 text-xs text-zinc-500 uppercase tracking-wider font-semibold">Price</th>
+                            <th class="px-6 py-4 text-xs text-zinc-500 uppercase tracking-wider font-semibold">Status</th>
+                            <th class="px-6 py-4 text-xs text-zinc-500 uppercase tracking-wider font-semibold text-right">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-zinc-50">
+                        @foreach (var s in _paged.Items) {
+                            <tr class="hover:bg-stone-50/50 transition-colors">
+                                <td class="px-6 py-4">
+                                    <div class="flex items-center gap-3">
+                                        <div class="w-8 h-8 rounded-lg flex items-center justify-center shrink-0
+                                            @(s.Category == SideDishCategory.FRIES ? "bg-amber-100" : "bg-blue-100")">
+                                            <span class="material-symbols-outlined @(s.Category == SideDishCategory.FRIES ? "text-amber-600" : "text-blue-500")"
+                                                  style="font-size:16px;font-variation-settings:'FILL' 1">
+                                                @(s.Category == SideDishCategory.FRIES ? "fastfood" : "local_drink")
+                                            </span>
+                                        </div>
+                                        <span class="font-medium text-zinc-900 text-sm">@s.Name</span>
+                                    </div>
+                                </td>
+                                <td class="px-6 py-4">
+                                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium
+                                        @(s.Category == SideDishCategory.FRIES ? "bg-amber-100 text-amber-800" : "bg-blue-100 text-blue-700")">
+                                        @s.Category
+                                    </span>
+                                </td>
+                                <td class="px-6 py-4 font-semibold text-zinc-900 text-sm">R$ @s.Price?.ToString("F2")</td>
+                                <td class="px-6 py-4">
+                                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium
+                                        @(s.Status == MenuStatus.Available ? "bg-emerald-100 text-emerald-700" : "bg-zinc-100 text-zinc-500")">
+                                        @s.Status
+                                    </span>
+                                </td>
+                                <td class="px-6 py-4 text-right">
+                                    <div class="flex justify-end gap-2">
+                                        <a href="side-dishes/edit/@s.Id" class="gh-btn-sm gh-btn-edit">
+                                            <span class="material-symbols-outlined" style="font-size:14px">edit</span>
+                                            Edit
+                                        </a>
+                                        <button class="gh-btn-sm gh-btn-danger" @onclick="() => DeleteAsync(s.Id)">
+                                            <span class="material-symbols-outlined" style="font-size:14px">delete</span>
+                                            Delete
+                                        </button>
+                                    </div>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+            <Pagination CurrentPage="_page" TotalPages="_paged.TotalPages" OnPageChange="LoadPage" />
+        }
+    </div>
+
 </div>
-
-@if (_error is not null) { <div class="alert alert-danger">@_error</div> }
-
-@if (_loading) {
-    <p><em>Loading...</em></p>
-} else if (_paged is null || _paged.Items.Count == 0) {
-    <p>No side dishes found.</p>
-} else {
-    <table class="table table-striped table-hover">
-        <thead><tr><th>Name</th><th>Category</th><th>Price</th><th>Status</th><th></th></tr></thead>
-        <tbody>
-            @foreach (var s in _paged.Items) {
-                <tr>
-                    <td>@s.Name</td>
-                    <td><span class="badge @(s.Category == SideDishCategory.FRIES ? "bg-warning text-dark" : "bg-info text-dark")">@s.Category</span></td>
-                    <td>@s.Price?.ToString("F2") @s.Currency</td>
-                    <td><span class="badge @(s.Status == MenuStatus.Available ? "bg-success" : "bg-secondary")">@s.Status</span></td>
-                    <td class="text-end">
-                        <a href="side-dishes/edit/@s.Id" class="btn btn-sm btn-outline-secondary me-1">Edit</a>
-                        <button class="btn btn-sm btn-outline-danger" @onclick="() => DeleteAsync(s.Id)">Delete</button>
-                    </td>
-                </tr>
-            }
-        </tbody>
-    </table>
-    <Pagination CurrentPage="_page" TotalPages="_paged.TotalPages" OnPageChange="LoadPage" />
-}
 
 @code {
     private PagedResponse<SideDishesResponse>? _paged;
