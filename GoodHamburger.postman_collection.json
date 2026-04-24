@@ -1,0 +1,2053 @@
+{
+  "info": {
+    "_postman_id": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
+    "name": "GoodHamburger API",
+    "description": "Coleção completa de testes para a GoodHamburger API. Cobre todos os endpoints e cenários: sucesso (2xx), validação (400), não encontrado (404), conflito (409) e regra de negócio (422).\n\nOrdem de execução recomendada: Customers → Menus → Side Dishes → Orders.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    { "key": "URLBASE",            "value": "http://localhost:5000", "type": "default" },
+    { "key": "customerId",         "value": "", "type": "default" },
+    { "key": "customerToDeleteId", "value": "", "type": "default" },
+    { "key": "menuId",             "value": "", "type": "default" },
+    { "key": "menuToDeleteId",     "value": "", "type": "default" },
+    { "key": "sideDishFriesId",    "value": "", "type": "default" },
+    { "key": "sideDishDrinkId",    "value": "", "type": "default" },
+    { "key": "sideDishToDeleteId", "value": "", "type": "default" },
+    { "key": "orderId",            "value": "", "type": "default" },
+    { "key": "orderFriesId",       "value": "", "type": "default" },
+    { "key": "orderComboId",       "value": "", "type": "default" },
+    { "key": "testPhone",          "value": "", "type": "default" },
+    { "key": "testMenuName",       "value": "", "type": "default" },
+    { "key": "testSideDishName",   "value": "", "type": "default" }
+  ],
+  "item": [
+
+    {
+      "name": "Customers",
+      "item": [
+
+        {
+          "name": "Criar Cliente",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "exec": [
+                  "var phone = '119' + _.random(10000000, 99999999);",
+                  "var email = 'test' + _.random(10000, 99999) + '@goodhamburger.com';",
+                  "pm.environment.set('testPhone', phone);",
+                  "pm.environment.set('testEmail', email);"
+                ],
+                "type": "text/javascript"
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 201 - Cliente criado', function () {",
+                  "    pm.response.to.have.status(201);",
+                  "});",
+                  "pm.test('Resposta contém ID e firstName', function () {",
+                  "    var json = pm.response.json();",
+                  "    pm.expect(json.id).to.be.a('string').and.not.be.empty;",
+                  "    pm.expect(json.firstName).to.equal('João');",
+                  "    pm.environment.set('customerId', json.id);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"firstName\": \"João\",\n  \"lastName\": \"Silva\",\n  \"phone\": \"{{testPhone}}\",\n  \"email\": \"{{testEmail}}\",\n  \"address\": \"Av. Paulista, 1000, São Paulo\"\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{URLBASE}}/api/v1/customers",
+              "host": ["{{URLBASE}}"],
+              "path": ["api", "v1", "customers"]
+            }
+          },
+          "response": []
+        },
+
+        {
+          "name": "Criar Cliente - Conflito: Telefone Duplicado",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 409 - Conflito de telefone', function () {",
+                  "    pm.response.to.have.status(409);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"firstName\": \"Maria\",\n  \"lastName\": \"Santos\",\n  \"phone\": \"{{testPhone}}\",\n  \"email\": \"outro@email.com\",\n  \"address\": \"Rua Augusta, 500\"\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{URLBASE}}/api/v1/customers",
+              "host": ["{{URLBASE}}"],
+              "path": ["api", "v1", "customers"]
+            }
+          },
+          "response": []
+        },
+
+        {
+          "name": "Criar Cliente - Validação: FirstName Vazio",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 400 - FirstName obrigatório', function () {",
+                  "    pm.response.to.have.status(400);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"firstName\": \"\",\n  \"lastName\": \"Silva\",\n  \"phone\": \"11987654321\",\n  \"email\": \"joao@email.com\"\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{URLBASE}}/api/v1/customers",
+              "host": ["{{URLBASE}}"],
+              "path": ["api", "v1", "customers"]
+            }
+          },
+          "response": []
+        },
+
+        {
+          "name": "Criar Cliente - Validação: Email Inválido",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 400 - Email inválido', function () {",
+                  "    pm.response.to.have.status(400);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"firstName\": \"João\",\n  \"lastName\": \"Silva\",\n  \"phone\": \"11987654321\",\n  \"email\": \"nao-e-um-email\"\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{URLBASE}}/api/v1/customers",
+              "host": ["{{URLBASE}}"],
+              "path": ["api", "v1", "customers"]
+            }
+          },
+          "response": []
+        },
+
+        {
+          "name": "Criar Cliente - Validação: Telefone Inválido",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 400 - Telefone inválido', function () {",
+                  "    pm.response.to.have.status(400);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"firstName\": \"João\",\n  \"lastName\": \"Silva\",\n  \"phone\": \"abc\",\n  \"email\": \"joao@email.com\"\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{URLBASE}}/api/v1/customers",
+              "host": ["{{URLBASE}}"],
+              "path": ["api", "v1", "customers"]
+            }
+          },
+          "response": []
+        },
+
+        {
+          "name": "Criar Cliente para Eliminar",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "exec": [
+                  "pm.environment.set('deletePhone', '118' + _.random(10000000, 99999999));"
+                ],
+                "type": "text/javascript"
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 201', function () { pm.response.to.have.status(201); });",
+                  "pm.environment.set('customerToDeleteId', pm.response.json().id);"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"firstName\": \"Para Eliminar\",\n  \"lastName\": \"Teste\",\n  \"phone\": \"{{deletePhone}}\",\n  \"email\": \"delete@test.com\"\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{URLBASE}}/api/v1/customers",
+              "host": ["{{URLBASE}}"],
+              "path": ["api", "v1", "customers"]
+            }
+          },
+          "response": []
+        },
+
+        {
+          "name": "Listar Clientes",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 200 - Lista retornada', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "pm.test('Estrutura de paginação válida', function () {",
+                  "    var json = pm.response.json();",
+                  "    pm.expect(json.items).to.be.an('array');",
+                  "    pm.expect(json.totalCount).to.be.a('number');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{URLBASE}}/api/v1/customers?page=1&pageSize=10",
+              "host": ["{{URLBASE}}"],
+              "path": ["api", "v1", "customers"],
+              "query": [
+                { "key": "page", "value": "1" },
+                { "key": "pageSize", "value": "10" }
+              ]
+            }
+          },
+          "response": []
+        },
+
+        {
+          "name": "Listar Clientes - Paginação",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 200 - Paginação funciona', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "pm.test('pageSize respeitado', function () {",
+                  "    var json = pm.response.json();",
+                  "    pm.expect(json.items.length).to.be.at.most(3);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{URLBASE}}/api/v1/customers?page=1&pageSize=3",
+              "host": ["{{URLBASE}}"],
+              "path": ["api", "v1", "customers"],
+              "query": [
+                { "key": "page", "value": "1" },
+                { "key": "pageSize", "value": "3" }
+              ]
+            }
+          },
+          "response": []
+        },
+
+        {
+          "name": "Obter Cliente por ID",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 200 - Cliente encontrado', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "pm.test('ID corresponde', function () {",
+                  "    var json = pm.response.json();",
+                  "    pm.expect(json.id).to.equal(pm.environment.get('customerId'));",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{URLBASE}}/api/v1/customers/{{customerId}}",
+              "host": ["{{URLBASE}}"],
+              "path": ["api", "v1", "customers", "{{customerId}}"]
+            }
+          },
+          "response": []
+        },
+
+        {
+          "name": "Obter Cliente - Não Encontrado",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 404 - Cliente não existe', function () {",
+                  "    pm.response.to.have.status(404);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{URLBASE}}/api/v1/customers/99999999-9999-9999-9999-999999999999",
+              "host": ["{{URLBASE}}"],
+              "path": ["api", "v1", "customers", "99999999-9999-9999-9999-999999999999"]
+            }
+          },
+          "response": []
+        },
+
+        {
+          "name": "Atualizar Cliente",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 200 - Cliente atualizado', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "pm.test('FirstName foi alterado', function () {",
+                  "    var json = pm.response.json();",
+                  "    pm.expect(json.firstName).to.equal('João Atualizado');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "PUT",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"firstName\": \"João Atualizado\",\n  \"lastName\": \"Silva\",\n  \"phone\": \"{{testPhone}}\",\n  \"email\": \"{{testEmail}}\",\n  \"address\": \"Rua Nova, 200\"\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{URLBASE}}/api/v1/customers/{{customerId}}",
+              "host": ["{{URLBASE}}"],
+              "path": ["api", "v1", "customers", "{{customerId}}"]
+            }
+          },
+          "response": []
+        },
+
+        {
+          "name": "Atualizar Cliente - Validação: FirstName Vazio",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 400 - Validação falhou', function () {",
+                  "    pm.response.to.have.status(400);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "PUT",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"firstName\": \"\",\n  \"lastName\": \"Silva\",\n  \"phone\": \"{{testPhone}}\",\n  \"email\": \"{{testEmail}}\"\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{URLBASE}}/api/v1/customers/{{customerId}}",
+              "host": ["{{URLBASE}}"],
+              "path": ["api", "v1", "customers", "{{customerId}}"]
+            }
+          },
+          "response": []
+        },
+
+        {
+          "name": "Atualizar Cliente - Não Encontrado",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 404', function () { pm.response.to.have.status(404); });"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "PUT",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"firstName\": \"Ghost\",\n  \"lastName\": \"User\",\n  \"phone\": \"11999000001\",\n  \"email\": \"ghost@test.com\"\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{URLBASE}}/api/v1/customers/99999999-9999-9999-9999-999999999999",
+              "host": ["{{URLBASE}}"],
+              "path": ["api", "v1", "customers", "99999999-9999-9999-9999-999999999999"]
+            }
+          },
+          "response": []
+        },
+
+        {
+          "name": "Eliminar Cliente",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 204 - Cliente eliminado', function () {",
+                  "    pm.response.to.have.status(204);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{URLBASE}}/api/v1/customers/{{customerToDeleteId}}",
+              "host": ["{{URLBASE}}"],
+              "path": ["api", "v1", "customers", "{{customerToDeleteId}}"]
+            }
+          },
+          "response": []
+        },
+
+        {
+          "name": "Eliminar Cliente - Não Encontrado",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 404', function () { pm.response.to.have.status(404); });"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{URLBASE}}/api/v1/customers/99999999-9999-9999-9999-999999999999",
+              "host": ["{{URLBASE}}"],
+              "path": ["api", "v1", "customers", "99999999-9999-9999-9999-999999999999"]
+            }
+          },
+          "response": []
+        }
+
+      ]
+    },
+
+    {
+      "name": "Menus",
+      "item": [
+
+        {
+          "name": "Criar Menu",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "exec": [
+                  "var name = 'Hambúrguer ' + _.random(1000, 9999);",
+                  "pm.environment.set('testMenuName', name);"
+                ],
+                "type": "text/javascript"
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 201 - Menu criado', function () {",
+                  "    pm.response.to.have.status(201);",
+                  "});",
+                  "pm.test('Retorna ID e name', function () {",
+                  "    var json = pm.response.json();",
+                  "    pm.expect(json.id).to.be.a('string').and.not.be.empty;",
+                  "    pm.expect(json.name).to.be.a('string');",
+                  "    pm.environment.set('menuId', json.id);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"{{testMenuName}}\",\n  \"description\": \"Pão brioche, carne 180g, queijo cheddar e molho especial\",\n  \"price\": 29.90,\n  \"currency\": \"BRL\"\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{URLBASE}}/api/v1/menus",
+              "host": ["{{URLBASE}}"],
+              "path": ["api", "v1", "menus"]
+            }
+          },
+          "response": []
+        },
+
+        {
+          "name": "Criar Menu - Conflito: Nome Duplicado",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 409 - Nome duplicado', function () {",
+                  "    pm.response.to.have.status(409);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"{{testMenuName}}\",\n  \"description\": \"Cópia duplicada\",\n  \"price\": 19.90,\n  \"currency\": \"BRL\"\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{URLBASE}}/api/v1/menus",
+              "host": ["{{URLBASE}}"],
+              "path": ["api", "v1", "menus"]
+            }
+          },
+          "response": []
+        },
+
+        {
+          "name": "Criar Menu - Validação: Name Vazio",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 400 - Name obrigatório', function () {",
+                  "    pm.response.to.have.status(400);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"\",\n  \"description\": \"Sem nome\",\n  \"price\": 29.90,\n  \"currency\": \"BRL\"\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{URLBASE}}/api/v1/menus",
+              "host": ["{{URLBASE}}"],
+              "path": ["api", "v1", "menus"]
+            }
+          },
+          "response": []
+        },
+
+        {
+          "name": "Criar Menu - Validação: Price Nulo",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 400 - Price obrigatório', function () {",
+                  "    pm.response.to.have.status(400);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Menu sem preço\",\n  \"description\": \"Teste\",\n  \"price\": null,\n  \"currency\": \"BRL\"\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{URLBASE}}/api/v1/menus",
+              "host": ["{{URLBASE}}"],
+              "path": ["api", "v1", "menus"]
+            }
+          },
+          "response": []
+        },
+
+        {
+          "name": "Criar Menu para Eliminar",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "exec": [
+                  "pm.environment.set('menuToDeleteName', 'Del Menu ' + _.random(1000, 9999));"
+                ],
+                "type": "text/javascript"
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 201', function () { pm.response.to.have.status(201); });",
+                  "pm.environment.set('menuToDeleteId', pm.response.json().id);"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"{{menuToDeleteName}}\",\n  \"description\": \"Menu para eliminar\",\n  \"price\": 9.90,\n  \"currency\": \"BRL\"\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{URLBASE}}/api/v1/menus",
+              "host": ["{{URLBASE}}"],
+              "path": ["api", "v1", "menus"]
+            }
+          },
+          "response": []
+        },
+
+        {
+          "name": "Listar Menus",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 200', function () { pm.response.to.have.status(200); });",
+                  "pm.test('Paginação válida', function () {",
+                  "    var json = pm.response.json();",
+                  "    pm.expect(json.items).to.be.an('array');",
+                  "    pm.expect(json.totalCount).to.be.a('number');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{URLBASE}}/api/v1/menus?page=1&pageSize=10",
+              "host": ["{{URLBASE}}"],
+              "path": ["api", "v1", "menus"],
+              "query": [
+                { "key": "page", "value": "1" },
+                { "key": "pageSize", "value": "10" }
+              ]
+            }
+          },
+          "response": []
+        },
+
+        {
+          "name": "Obter Menu por ID",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 200', function () { pm.response.to.have.status(200); });",
+                  "pm.test('ID corresponde', function () {",
+                  "    pm.expect(pm.response.json().id).to.equal(pm.environment.get('menuId'));",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{URLBASE}}/api/v1/menus/{{menuId}}",
+              "host": ["{{URLBASE}}"],
+              "path": ["api", "v1", "menus", "{{menuId}}"]
+            }
+          },
+          "response": []
+        },
+
+        {
+          "name": "Obter Menu - Não Encontrado",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 404', function () { pm.response.to.have.status(404); });"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{URLBASE}}/api/v1/menus/99999999-9999-9999-9999-999999999999",
+              "host": ["{{URLBASE}}"],
+              "path": ["api", "v1", "menus", "99999999-9999-9999-9999-999999999999"]
+            }
+          },
+          "response": []
+        },
+
+        {
+          "name": "Atualizar Menu",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 200 - Menu atualizado', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "pm.test('Status do menu retornado', function () {",
+                  "    var json = pm.response.json();",
+                  "    pm.expect(json.status).to.equal('Available');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "PUT",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"{{testMenuName}}\",\n  \"description\": \"Descrição atualizada\",\n  \"price\": 34.90,\n  \"currency\": \"BRL\",\n  \"status\": \"Available\"\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{URLBASE}}/api/v1/menus/{{menuId}}",
+              "host": ["{{URLBASE}}"],
+              "path": ["api", "v1", "menus", "{{menuId}}"]
+            }
+          },
+          "response": []
+        },
+
+        {
+          "name": "Atualizar Menu - Validação: Name Vazio",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 400', function () { pm.response.to.have.status(400); });"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "PUT",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"\",\n  \"price\": 29.90,\n  \"currency\": \"BRL\",\n  \"status\": \"Available\"\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{URLBASE}}/api/v1/menus/{{menuId}}",
+              "host": ["{{URLBASE}}"],
+              "path": ["api", "v1", "menus", "{{menuId}}"]
+            }
+          },
+          "response": []
+        },
+
+        {
+          "name": "Atualizar Menu - Não Encontrado",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 404', function () { pm.response.to.have.status(404); });"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "PUT",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Ghost Menu\",\n  \"price\": 10.00,\n  \"currency\": \"BRL\",\n  \"status\": \"Available\"\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{URLBASE}}/api/v1/menus/99999999-9999-9999-9999-999999999999",
+              "host": ["{{URLBASE}}"],
+              "path": ["api", "v1", "menus", "99999999-9999-9999-9999-999999999999"]
+            }
+          },
+          "response": []
+        },
+
+        {
+          "name": "Eliminar Menu",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 204 - Menu eliminado', function () {",
+                  "    pm.response.to.have.status(204);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{URLBASE}}/api/v1/menus/{{menuToDeleteId}}",
+              "host": ["{{URLBASE}}"],
+              "path": ["api", "v1", "menus", "{{menuToDeleteId}}"]
+            }
+          },
+          "response": []
+        },
+
+        {
+          "name": "Eliminar Menu - Não Encontrado",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 404', function () { pm.response.to.have.status(404); });"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{URLBASE}}/api/v1/menus/99999999-9999-9999-9999-999999999999",
+              "host": ["{{URLBASE}}"],
+              "path": ["api", "v1", "menus", "99999999-9999-9999-9999-999999999999"]
+            }
+          },
+          "response": []
+        }
+
+      ]
+    },
+
+    {
+      "name": "Side Dishes",
+      "item": [
+
+        {
+          "name": "Criar Acompanhamento - Batata Frita",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "exec": [
+                  "var name = 'Batata Frita ' + _.random(1000, 9999);",
+                  "pm.environment.set('testSideDishName', name);"
+                ],
+                "type": "text/javascript"
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 201 - Batata Frita criada', function () {",
+                  "    pm.response.to.have.status(201);",
+                  "});",
+                  "pm.test('Category é FRIES', function () {",
+                  "    var json = pm.response.json();",
+                  "    pm.expect(json.category).to.equal('FRIES');",
+                  "    pm.environment.set('sideDishFriesId', json.id);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"{{testSideDishName}}\",\n  \"description\": \"Batata frita crocante\",\n  \"price\": 8.90,\n  \"category\": \"FRIES\",\n  \"currency\": \"BRL\"\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{URLBASE}}/api/v1/side-dishes",
+              "host": ["{{URLBASE}}"],
+              "path": ["api", "v1", "side-dishes"]
+            }
+          },
+          "response": []
+        },
+
+        {
+          "name": "Criar Acompanhamento - Bebida",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "exec": [
+                  "pm.environment.set('testDrinkName', 'Refrigerante ' + _.random(1000, 9999));"
+                ],
+                "type": "text/javascript"
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 201 - Bebida criada', function () {",
+                  "    pm.response.to.have.status(201);",
+                  "});",
+                  "pm.test('Category é DRINK', function () {",
+                  "    var json = pm.response.json();",
+                  "    pm.expect(json.category).to.equal('DRINK');",
+                  "    pm.environment.set('sideDishDrinkId', json.id);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"{{testDrinkName}}\",\n  \"description\": \"Refrigerante gelado 350ml\",\n  \"price\": 5.90,\n  \"category\": \"DRINK\",\n  \"currency\": \"BRL\"\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{URLBASE}}/api/v1/side-dishes",
+              "host": ["{{URLBASE}}"],
+              "path": ["api", "v1", "side-dishes"]
+            }
+          },
+          "response": []
+        },
+
+        {
+          "name": "Criar Acompanhamento - Conflito: Nome Duplicado",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 409 - Nome duplicado', function () {",
+                  "    pm.response.to.have.status(409);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"{{testSideDishName}}\",\n  \"description\": \"Cópia duplicada\",\n  \"price\": 6.90,\n  \"category\": \"FRIES\",\n  \"currency\": \"BRL\"\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{URLBASE}}/api/v1/side-dishes",
+              "host": ["{{URLBASE}}"],
+              "path": ["api", "v1", "side-dishes"]
+            }
+          },
+          "response": []
+        },
+
+        {
+          "name": "Criar Acompanhamento - Validação: Name Vazio",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 400 - Name obrigatório', function () {",
+                  "    pm.response.to.have.status(400);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"\",\n  \"price\": 8.90,\n  \"category\": \"FRIES\",\n  \"currency\": \"BRL\"\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{URLBASE}}/api/v1/side-dishes",
+              "host": ["{{URLBASE}}"],
+              "path": ["api", "v1", "side-dishes"]
+            }
+          },
+          "response": []
+        },
+
+        {
+          "name": "Criar Acompanhamento - Validação: Price Nulo",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 400 - Price obrigatório', function () {",
+                  "    pm.response.to.have.status(400);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Batata Sem Preço\",\n  \"price\": null,\n  \"category\": \"FRIES\",\n  \"currency\": \"BRL\"\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{URLBASE}}/api/v1/side-dishes",
+              "host": ["{{URLBASE}}"],
+              "path": ["api", "v1", "side-dishes"]
+            }
+          },
+          "response": []
+        },
+
+        {
+          "name": "Criar Acompanhamento para Eliminar",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "exec": [
+                  "pm.environment.set('sideDishToDeleteName', 'Del Dish ' + _.random(1000, 9999));"
+                ],
+                "type": "text/javascript"
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 201', function () { pm.response.to.have.status(201); });",
+                  "pm.environment.set('sideDishToDeleteId', pm.response.json().id);"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"{{sideDishToDeleteName}}\",\n  \"price\": 4.00,\n  \"category\": \"DRINK\",\n  \"currency\": \"BRL\"\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{URLBASE}}/api/v1/side-dishes",
+              "host": ["{{URLBASE}}"],
+              "path": ["api", "v1", "side-dishes"]
+            }
+          },
+          "response": []
+        },
+
+        {
+          "name": "Listar Acompanhamentos",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 200', function () { pm.response.to.have.status(200); });",
+                  "pm.test('Lista retornada', function () {",
+                  "    var json = pm.response.json();",
+                  "    pm.expect(json.items).to.be.an('array');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{URLBASE}}/api/v1/side-dishes?page=1&pageSize=10",
+              "host": ["{{URLBASE}}"],
+              "path": ["api", "v1", "side-dishes"],
+              "query": [
+                { "key": "page", "value": "1" },
+                { "key": "pageSize", "value": "10" }
+              ]
+            }
+          },
+          "response": []
+        },
+
+        {
+          "name": "Obter Acompanhamento por ID",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 200', function () { pm.response.to.have.status(200); });",
+                  "pm.test('ID corresponde', function () {",
+                  "    pm.expect(pm.response.json().id).to.equal(pm.environment.get('sideDishFriesId'));",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{URLBASE}}/api/v1/side-dishes/{{sideDishFriesId}}",
+              "host": ["{{URLBASE}}"],
+              "path": ["api", "v1", "side-dishes", "{{sideDishFriesId}}"]
+            }
+          },
+          "response": []
+        },
+
+        {
+          "name": "Obter Acompanhamento - Não Encontrado",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 404', function () { pm.response.to.have.status(404); });"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{URLBASE}}/api/v1/side-dishes/99999999-9999-9999-9999-999999999999",
+              "host": ["{{URLBASE}}"],
+              "path": ["api", "v1", "side-dishes", "99999999-9999-9999-9999-999999999999"]
+            }
+          },
+          "response": []
+        },
+
+        {
+          "name": "Atualizar Acompanhamento",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 200', function () { pm.response.to.have.status(200); });",
+                  "pm.test('Price atualizado', function () {",
+                  "    pm.expect(pm.response.json().price).to.equal(9.90);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "PUT",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"{{testSideDishName}}\",\n  \"description\": \"Batata frita grande e crocante\",\n  \"price\": 9.90,\n  \"category\": \"FRIES\",\n  \"currency\": \"BRL\",\n  \"status\": \"Available\"\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{URLBASE}}/api/v1/side-dishes/{{sideDishFriesId}}",
+              "host": ["{{URLBASE}}"],
+              "path": ["api", "v1", "side-dishes", "{{sideDishFriesId}}"]
+            }
+          },
+          "response": []
+        },
+
+        {
+          "name": "Atualizar Acompanhamento - Validação: Name Vazio",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 400', function () { pm.response.to.have.status(400); });"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "PUT",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"\",\n  \"price\": 8.90,\n  \"category\": \"FRIES\",\n  \"currency\": \"BRL\",\n  \"status\": \"Available\"\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{URLBASE}}/api/v1/side-dishes/{{sideDishFriesId}}",
+              "host": ["{{URLBASE}}"],
+              "path": ["api", "v1", "side-dishes", "{{sideDishFriesId}}"]
+            }
+          },
+          "response": []
+        },
+
+        {
+          "name": "Atualizar Acompanhamento - Não Encontrado",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 404', function () { pm.response.to.have.status(404); });"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "PUT",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Ghost Dish\",\n  \"price\": 5.00,\n  \"category\": \"DRINK\",\n  \"currency\": \"BRL\",\n  \"status\": \"Available\"\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{URLBASE}}/api/v1/side-dishes/99999999-9999-9999-9999-999999999999",
+              "host": ["{{URLBASE}}"],
+              "path": ["api", "v1", "side-dishes", "99999999-9999-9999-9999-999999999999"]
+            }
+          },
+          "response": []
+        },
+
+        {
+          "name": "Eliminar Acompanhamento",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 204 - Eliminado', function () {",
+                  "    pm.response.to.have.status(204);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{URLBASE}}/api/v1/side-dishes/{{sideDishToDeleteId}}",
+              "host": ["{{URLBASE}}"],
+              "path": ["api", "v1", "side-dishes", "{{sideDishToDeleteId}}"]
+            }
+          },
+          "response": []
+        },
+
+        {
+          "name": "Eliminar Acompanhamento - Não Encontrado",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 404', function () { pm.response.to.have.status(404); });"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{URLBASE}}/api/v1/side-dishes/99999999-9999-9999-9999-999999999999",
+              "host": ["{{URLBASE}}"],
+              "path": ["api", "v1", "side-dishes", "99999999-9999-9999-9999-999999999999"]
+            }
+          },
+          "response": []
+        }
+
+      ]
+    },
+
+    {
+      "name": "Orders",
+      "item": [
+
+        {
+          "name": "Criar Pedido Simples (sem acompanhamentos)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 201 - Pedido criado', function () {",
+                  "    pm.response.to.have.status(201);",
+                  "});",
+                  "pm.test('Sem desconto e status PENDING', function () {",
+                  "    var json = pm.response.json();",
+                  "    pm.expect(json.id).to.be.a('string').and.not.be.empty;",
+                  "    pm.expect(json.status).to.equal('PENDING');",
+                  "    pm.expect(parseFloat(json.discount)).to.equal(0);",
+                  "    pm.environment.set('orderId', json.id);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"customerId\": \"{{customerId}}\",\n  \"menuId\": \"{{menuId}}\",\n  \"sideDishIds\": []\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{URLBASE}}/api/v1/orders",
+              "host": ["{{URLBASE}}"],
+              "path": ["api", "v1", "orders"]
+            }
+          },
+          "response": []
+        },
+
+        {
+          "name": "Criar Pedido com Batata Frita (10% desconto)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 201', function () { pm.response.to.have.status(201); });",
+                  "pm.test('10% de desconto aplicado', function () {",
+                  "    var json = pm.response.json();",
+                  "    pm.expect(parseFloat(json.discount)).to.be.above(0);",
+                  "    pm.expect(parseFloat(json.total)).to.be.below(parseFloat(json.subtotal));",
+                  "    pm.environment.set('orderFriesId', json.id);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"customerId\": \"{{customerId}}\",\n  \"menuId\": \"{{menuId}}\",\n  \"sideDishIds\": [\"{{sideDishFriesId}}\"]\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{URLBASE}}/api/v1/orders",
+              "host": ["{{URLBASE}}"],
+              "path": ["api", "v1", "orders"]
+            }
+          },
+          "response": []
+        },
+
+        {
+          "name": "Criar Pedido com Bebida (15% desconto)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 201', function () { pm.response.to.have.status(201); });",
+                  "pm.test('Desconto aplicado (bebida)', function () {",
+                  "    var json = pm.response.json();",
+                  "    pm.expect(parseFloat(json.discount)).to.be.above(0);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"customerId\": \"{{customerId}}\",\n  \"menuId\": \"{{menuId}}\",\n  \"sideDishIds\": [\"{{sideDishDrinkId}}\"]\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{URLBASE}}/api/v1/orders",
+              "host": ["{{URLBASE}}"],
+              "path": ["api", "v1", "orders"]
+            }
+          },
+          "response": []
+        },
+
+        {
+          "name": "Criar Pedido Combo FRIES + DRINK (20% desconto)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 201', function () { pm.response.to.have.status(201); });",
+                  "pm.test('20% de desconto combo aplicado', function () {",
+                  "    var json = pm.response.json();",
+                  "    pm.expect(parseFloat(json.discount)).to.be.above(0);",
+                  "    pm.expect(json.status).to.equal('PENDING');",
+                  "    pm.environment.set('orderComboId', json.id);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"customerId\": \"{{customerId}}\",\n  \"menuId\": \"{{menuId}}\",\n  \"sideDishIds\": [\"{{sideDishFriesId}}\", \"{{sideDishDrinkId}}\"]\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{URLBASE}}/api/v1/orders",
+              "host": ["{{URLBASE}}"],
+              "path": ["api", "v1", "orders"]
+            }
+          },
+          "response": []
+        },
+
+        {
+          "name": "Criar Pedido - Validação: SideDishIds excede máximo (> 2)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 400 - Máximo 2 acompanhamentos', function () {",
+                  "    pm.response.to.have.status(400);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"customerId\": \"{{customerId}}\",\n  \"menuId\": \"{{menuId}}\",\n  \"sideDishIds\": [\"{{sideDishFriesId}}\", \"{{sideDishDrinkId}}\", \"{{sideDishFriesId}}\"]\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{URLBASE}}/api/v1/orders",
+              "host": ["{{URLBASE}}"],
+              "path": ["api", "v1", "orders"]
+            }
+          },
+          "response": []
+        },
+
+        {
+          "name": "Criar Pedido - Validação: CustomerId Vazio",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 400 - CustomerId obrigatório', function () {",
+                  "    pm.response.to.have.status(400);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"customerId\": \"00000000-0000-0000-0000-000000000000\",\n  \"menuId\": \"{{menuId}}\",\n  \"sideDishIds\": []\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{URLBASE}}/api/v1/orders",
+              "host": ["{{URLBASE}}"],
+              "path": ["api", "v1", "orders"]
+            }
+          },
+          "response": []
+        },
+
+        {
+          "name": "Criar Pedido - Validação: MenuId Vazio",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 400 - MenuId obrigatório', function () {",
+                  "    pm.response.to.have.status(400);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"customerId\": \"{{customerId}}\",\n  \"menuId\": \"00000000-0000-0000-0000-000000000000\",\n  \"sideDishIds\": []\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{URLBASE}}/api/v1/orders",
+              "host": ["{{URLBASE}}"],
+              "path": ["api", "v1", "orders"]
+            }
+          },
+          "response": []
+        },
+
+        {
+          "name": "Criar Pedido - Cliente Não Encontrado",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 404 - Cliente inexistente', function () {",
+                  "    pm.response.to.have.status(404);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"customerId\": \"11111111-1111-1111-1111-111111111111\",\n  \"menuId\": \"{{menuId}}\",\n  \"sideDishIds\": []\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{URLBASE}}/api/v1/orders",
+              "host": ["{{URLBASE}}"],
+              "path": ["api", "v1", "orders"]
+            }
+          },
+          "response": []
+        },
+
+        {
+          "name": "Criar Pedido - Menu Não Encontrado",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 404 - Menu inexistente', function () {",
+                  "    pm.response.to.have.status(404);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"customerId\": \"{{customerId}}\",\n  \"menuId\": \"22222222-2222-2222-2222-222222222222\",\n  \"sideDishIds\": []\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{URLBASE}}/api/v1/orders",
+              "host": ["{{URLBASE}}"],
+              "path": ["api", "v1", "orders"]
+            }
+          },
+          "response": []
+        },
+
+        {
+          "name": "Listar Pedidos",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 200', function () { pm.response.to.have.status(200); });",
+                  "pm.test('Lista paginada retornada', function () {",
+                  "    var json = pm.response.json();",
+                  "    pm.expect(json.items).to.be.an('array');",
+                  "    pm.expect(json.totalCount).to.be.a('number');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{URLBASE}}/api/v1/orders?page=1&pageSize=10",
+              "host": ["{{URLBASE}}"],
+              "path": ["api", "v1", "orders"],
+              "query": [
+                { "key": "page", "value": "1" },
+                { "key": "pageSize", "value": "10" }
+              ]
+            }
+          },
+          "response": []
+        },
+
+        {
+          "name": "Listar Pedidos - Paginação",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 200', function () { pm.response.to.have.status(200); });",
+                  "pm.test('pageSize respeitado', function () {",
+                  "    pm.expect(pm.response.json().items.length).to.be.at.most(2);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{URLBASE}}/api/v1/orders?page=1&pageSize=2",
+              "host": ["{{URLBASE}}"],
+              "path": ["api", "v1", "orders"],
+              "query": [
+                { "key": "page", "value": "1" },
+                { "key": "pageSize", "value": "2" }
+              ]
+            }
+          },
+          "response": []
+        },
+
+        {
+          "name": "Obter Pedido por ID",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 200 - Pedido encontrado', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "pm.test('ID e status corretos', function () {",
+                  "    var json = pm.response.json();",
+                  "    pm.expect(json.id).to.equal(pm.environment.get('orderId'));",
+                  "    pm.expect(json.status).to.equal('PENDING');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{URLBASE}}/api/v1/orders/{{orderId}}",
+              "host": ["{{URLBASE}}"],
+              "path": ["api", "v1", "orders", "{{orderId}}"]
+            }
+          },
+          "response": []
+        },
+
+        {
+          "name": "Obter Pedido - Não Encontrado",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 404', function () { pm.response.to.have.status(404); });"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{URLBASE}}/api/v1/orders/99999999-9999-9999-9999-999999999999",
+              "host": ["{{URLBASE}}"],
+              "path": ["api", "v1", "orders", "99999999-9999-9999-9999-999999999999"]
+            }
+          },
+          "response": []
+        },
+
+        {
+          "name": "Confirmar Pedido",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 200 - Pedido confirmado', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "pm.test('Status é CONFIRMED', function () {",
+                  "    pm.expect(pm.response.json().status).to.equal('CONFIRMED');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "PUT",
+            "header": [],
+            "url": {
+              "raw": "{{URLBASE}}/api/v1/orders/{{orderId}}/confirm",
+              "host": ["{{URLBASE}}"],
+              "path": ["api", "v1", "orders", "{{orderId}}", "confirm"]
+            }
+          },
+          "response": []
+        },
+
+        {
+          "name": "Confirmar Pedido - Não Encontrado",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 404', function () { pm.response.to.have.status(404); });"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "PUT",
+            "header": [],
+            "url": {
+              "raw": "{{URLBASE}}/api/v1/orders/99999999-9999-9999-9999-999999999999/confirm",
+              "host": ["{{URLBASE}}"],
+              "path": ["api", "v1", "orders", "99999999-9999-9999-9999-999999999999", "confirm"]
+            }
+          },
+          "response": []
+        },
+
+        {
+          "name": "Cancelar Pedido",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 200 - Pedido cancelado', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "pm.test('Status é CANCELLED', function () {",
+                  "    pm.expect(pm.response.json().status).to.equal('CANCELLED');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "PUT",
+            "header": [],
+            "url": {
+              "raw": "{{URLBASE}}/api/v1/orders/{{orderComboId}}/cancel",
+              "host": ["{{URLBASE}}"],
+              "path": ["api", "v1", "orders", "{{orderComboId}}", "cancel"]
+            }
+          },
+          "response": []
+        },
+
+        {
+          "name": "Cancelar Pedido - Não Encontrado",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 404', function () { pm.response.to.have.status(404); });"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "PUT",
+            "header": [],
+            "url": {
+              "raw": "{{URLBASE}}/api/v1/orders/99999999-9999-9999-9999-999999999999/cancel",
+              "host": ["{{URLBASE}}"],
+              "path": ["api", "v1", "orders", "99999999-9999-9999-9999-999999999999", "cancel"]
+            }
+          },
+          "response": []
+        },
+
+        {
+          "name": "Eliminar Pedido PENDING",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 204 - Pedido PENDING eliminado', function () {",
+                  "    pm.response.to.have.status(204);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{URLBASE}}/api/v1/orders/{{orderFriesId}}",
+              "host": ["{{URLBASE}}"],
+              "path": ["api", "v1", "orders", "{{orderFriesId}}"]
+            }
+          },
+          "response": []
+        },
+
+        {
+          "name": "Eliminar Pedido CONFIRMED - Regra de Negócio",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 422 - Não é possível eliminar pedido CONFIRMED', function () {",
+                  "    pm.response.to.have.status(422);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{URLBASE}}/api/v1/orders/{{orderId}}",
+              "host": ["{{URLBASE}}"],
+              "path": ["api", "v1", "orders", "{{orderId}}"]
+            }
+          },
+          "response": []
+        },
+
+        {
+          "name": "Eliminar Pedido - Não Encontrado",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 404', function () { pm.response.to.have.status(404); });"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{URLBASE}}/api/v1/orders/99999999-9999-9999-9999-999999999999",
+              "host": ["{{URLBASE}}"],
+              "path": ["api", "v1", "orders", "99999999-9999-9999-9999-999999999999"]
+            }
+          },
+          "response": []
+        }
+
+      ]
+    }
+
+  ],
+
+  "event": [
+    { "listen": "prerequest", "script": { "type": "text/javascript", "exec": [""] } },
+    { "listen": "test",       "script": { "type": "text/javascript", "exec": [""] } }
+  ]
+}

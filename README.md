@@ -2,7 +2,7 @@
 
 [![.NET](https://img.shields.io/badge/.NET-7.0-512BD4?logo=dotnet)](https://dotnet.microsoft.com/)
 [![Architecture](https://img.shields.io/badge/Architecture-Clean%20Architecture-blue)]()
-[![Tests](https://img.shields.io/badge/Tests-103%20passing-brightgreen)]()
+[![Tests](https://img.shields.io/badge/Tests-141%20passing-brightgreen)]()
 [![License](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
 REST API para gestão de uma hamburgueria — pedidos, menu, acompanhamentos e clientes — construída com **Clean Architecture**, **Domain-Driven Design** e **TDD** em **.NET 7.0**.
@@ -136,6 +136,7 @@ GoodHamburger/
 │   │   │       └── Configuration/      # ApiBootstrapper (Swagger, CORS, Versioning)
 │   │   │
 │   │   └── test/
+│   │       ├── DomainTest/             # Testes unitários de entidades de domínio (38 testes)
 │   │       ├── UseCaseTest/            # Testes unitários de use cases (51 testes)
 │   │       ├── Validators/             # Testes unitários de validators (52 testes)
 │   │       └── Utils/                  # Builders e mocks reutilizáveis
@@ -319,9 +320,10 @@ Base URL: `/api/v1`
 
 | Projeto | Testes | Tipo |
 |---------|--------|------|
+| `DomainTest` | **38** | Unitários — regras de negócio das entidades (Order, OrderItem, OrderSideDishes) |
 | `UseCaseTest` | **51** | Unitários — Use Cases com mocks |
 | `Validators` | **52** | Unitários — Validators com dados reais |
-| **Total** | **103** | — |
+| **Total** | **141** | — |
 
 ### Estratégia
 
@@ -376,11 +378,14 @@ dotnet test GoodHamburger/GoodHamburger.sln
 # Com cobertura
 dotnet test GoodHamburger/GoodHamburger.sln --collect:"XPlat Code Coverage"
 
+# Apenas Domain (entidades)
+dotnet test GoodHamburger/apps/api/test/DomainTest/DomainTest.csproj
+
 # Apenas Validators
-dotnet test apps/api/test/validators/customer/Validators/Validators.csproj
+dotnet test GoodHamburger/apps/api/test/validators/customer/Validators/Validators.csproj
 
 # Apenas Use Cases
-dotnet test apps/api/test/UseCases/UseCaseTest/UseCaseTest.csproj
+dotnet test GoodHamburger/apps/api/test/UseCases/UseCaseTest/UseCaseTest.csproj
 ```
 
 ---
@@ -391,6 +396,7 @@ dotnet test apps/api/test/UseCases/UseCaseTest/UseCaseTest.csproj
 
 - [.NET 7.0 SDK](https://dotnet.microsoft.com/download/dotnet/7.0)
 - SQL Server (opcional — por defeito usa InMemory)
+- [Docker](https://www.docker.com/) (opcional — para executar com containers)
 
 ### Configuração
 
@@ -430,6 +436,26 @@ dotnet run --project GoodHamburger/apps/api/src/GoodHamburger.API
 A API fica disponível em `https://localhost:7162`.  
 Swagger UI em `https://localhost:7162/swagger`.
 
+### Executar com Docker
+
+```bash
+cd GoodHamburger
+docker compose up --build
+```
+
+| Serviço | URL |
+|---------|-----|
+| API | `http://localhost:5000` |
+| Frontend (Blazor) | `http://localhost:5001` |
+| SQL Server | `localhost:1433` |
+
+As migrations são aplicadas automaticamente no startup da API. A stack inclui `Dockerfile.api`, `Dockerfile.web` e `docker-compose.yml` com health check no SQL Server.
+
+### Testar com Postman
+
+Importar o ficheiro `GoodHamburger.postman_collection.json` (raiz do repositório) no Postman.  
+Contém **60 requests** distribuídos por 4 pastas (Customers, Menus, Side Dishes, Orders), cobrindo todos os cenários de sucesso, validação, not found e regras de negócio.
+
 ---
 
 ## O que ficou de fora
@@ -441,7 +467,6 @@ Estas funcionalidades foram conscientemente deixadas de fora do âmbito atual do
 | **Autenticação / Autorização** | Fora do âmbito da fase atual. A estrutura de middleware está preparada para adicionar JWT sem alterar use cases. |
 | **Frontend Blazor** | Template inicial criado mas não integrado com a API. Interface planeada para fase posterior. |
 | **Testes de Integração** | Apenas testes unitários existem. Testes de integração contra InMemory DB são o próximo passo natural. |
-| **Testes de Domínio** | As regras de negócio das entidades (Order, OrderItem) não têm testes unitários diretos — são cobertas indiretamente pelos use case tests. |
 | **PAID / READY / DELIVERED** | Os estados do ciclo de vida do pedido existem no enum e no domínio, mas não há use cases específicos para eles (ex: `MarkAsReadyUseCase`). |
 | **Paginação por filtro** | As listagens paginadas não suportam filtros ou ordenação — retornam todos os registos paginados. |
 | **Soft Delete** | A infraestrutura tem suporte parcial (`IgnoreQueryFilters`) mas não está activado. Eliminação é física. |

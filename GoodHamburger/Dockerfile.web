@@ -1,0 +1,22 @@
+# ── Build stage ──────────────────────────────────────────────────────────────
+FROM mcr.microsoft.com/dotnet/sdk:7.0 AS build
+WORKDIR /src
+
+COPY apps/web/src/WebGoodHamburger/WebGoodHamburger.csproj \
+     apps/web/src/WebGoodHamburger/
+
+RUN dotnet restore apps/web/src/WebGoodHamburger/WebGoodHamburger.csproj
+
+COPY apps/web/src/ apps/web/src/
+RUN dotnet publish apps/web/src/WebGoodHamburger/WebGoodHamburger.csproj \
+    -c Release -o /app/publish --no-restore
+
+# ── Runtime stage ─────────────────────────────────────────────────────────────
+FROM mcr.microsoft.com/dotnet/aspnet:7.0 AS final
+WORKDIR /app
+
+EXPOSE 8080
+ENV ASPNETCORE_URLS=http://+:8080
+
+COPY --from=build /app/publish .
+ENTRYPOINT ["dotnet", "WebGoodHamburger.dll"]

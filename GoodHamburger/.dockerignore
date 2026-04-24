@@ -1,0 +1,9 @@
+**/bin/
+**/obj/
+**/.vs/
+**/.git/
+**/node_modules/
+apps/api/test/
+*.user
+*.suo
+.DS_Store
