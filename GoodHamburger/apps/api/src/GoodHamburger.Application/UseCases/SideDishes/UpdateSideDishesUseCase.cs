@@ -33,6 +33,8 @@ public class UpdateSideDishesUseCase : IUpdateSideDishesUseCase {
 
         var sideDishToUpdate = request.ToDomain();
 
+        sideDishToUpdate.Id=sideDish.Id;
+
         await _sideDishRepo.ReplaceOneAsync(s => s.Id == sideDish.Id, sideDishToUpdate, ct);
         await _unitOfWork.SaveChangesAsync(ct);
 
