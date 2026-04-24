@@ -1,101 +1,66 @@
 @page "/orders"
 @inject OrderService OrderSvc
-@inject IJSRuntime JS
+@inject ISnackbar Snackbar
+@inject IDialogService DialogSvc
 
 <PageTitle>Orders — GoodHamburger</PageTitle>
 
-<Toast @ref="_toast" />
-
-<div class="space-y-6 max-w-5xl mx-auto">
-
-    <div class="flex justify-between items-center">
-        <div>
-            <h1 class="text-2xl font-bold text-zinc-900 font-lexend">Orders</h1>
-            <p class="text-sm text-zinc-500 mt-1">Track and manage all customer orders</p>
-        </div>
-        <a href="orders/create" class="gh-btn gh-btn-primary">
-            <span class="material-symbols-outlined" style="font-size:18px">add_shopping_cart</span>
-            New Order
-        </a>
-    </div>
-
-    <div class="bg-white rounded-xl shadow-sm border border-zinc-100 overflow-hidden">
-        @if (_loading) {
-            <div class="flex items-center justify-center py-16">
-                <div class="flex items-center gap-3 text-zinc-400">
-                    <span class="material-symbols-outlined animate-spin">refresh</span>
-                    <span class="text-sm">Loading orders...</span>
-                </div>
-            </div>
-        } else if (_paged is null || _paged.Items.Count == 0) {
-            <div class="flex flex-col items-center justify-center py-16 text-zinc-400">
-                <span class="material-symbols-outlined text-5xl mb-3">receipt_long</span>
-                <p class="text-sm font-medium">No orders yet</p>
-                <p class="text-xs mt-1">Create the first order to get started</p>
-            </div>
-        } else {
-            <div class="overflow-x-auto">
-                <table class="w-full text-left">
-                    <thead class="bg-stone-50 border-b border-zinc-100">
-                        <tr>
-                            <th class="px-6 py-4 text-xs text-zinc-500 uppercase tracking-wider font-semibold">Order</th>
-                            <th class="px-6 py-4 text-xs text-zinc-500 uppercase tracking-wider font-semibold">Customer</th>
-                            <th class="px-6 py-4 text-xs text-zinc-500 uppercase tracking-wider font-semibold">Status</th>
-                            <th class="px-6 py-4 text-xs text-zinc-500 uppercase tracking-wider font-semibold">Discount</th>
-                            <th class="px-6 py-4 text-xs text-zinc-500 uppercase tracking-wider font-semibold text-right">Total</th>
-                            <th class="px-6 py-4 text-xs text-zinc-500 uppercase tracking-wider font-semibold text-right">Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody class="divide-y divide-zinc-50">
-                        @foreach (var o in _paged.Items) {
-                            <tr class="hover:bg-stone-50/50 transition-colors">
-                                <td class="px-6 py-4">
-                                    <p class="font-semibold text-zinc-900 text-sm">#GH-@o.OrderNumber</p>
-                                    <p class="text-xs text-zinc-400 mt-0.5">@o.CreatedAt.ToString("dd MMM yyyy, HH:mm")</p>
-                                </td>
-                                <td class="px-6 py-4">
-                                    <p class="text-sm font-medium text-zinc-800">@(string.IsNullOrEmpty(o.CustomerName) ? "—" : o.CustomerName)</p>
-                                </td>
-                                <td class="px-6 py-4">
-                                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium @StatusClass(o.Status)">
-                                        @o.Status
-                                    </span>
-                                </td>
-                                <td class="px-6 py-4 text-sm">
-                                    @if (o.Discount > 0) {
-                                        <span class="text-emerald-600 font-medium">-@o.Discount%</span>
-                                    } else {
-                                        <span class="text-zinc-400">—</span>
-                                    }
-                                </td>
-                                <td class="px-6 py-4 text-right font-bold text-zinc-900">R$ @o.Total.ToString("F2")</td>
-                                <td class="px-6 py-4 text-right">
-                                    <div class="flex justify-end gap-2">
-                                        <a href="orders/@o.Id" class="gh-btn-sm gh-btn-view">
-                                            <span class="material-symbols-outlined" style="font-size:14px">visibility</span>
-                                            Detail
-                                        </a>
-                                        @if (o.Status == OrderStatus.PENDING || o.Status == OrderStatus.CANCELLED) {
-                                            <button class="gh-btn-sm gh-btn-danger" @onclick="() => DeleteAsync(o.Id)">
-                                                <span class="material-symbols-outlined" style="font-size:14px">delete</span>
-                                                Delete
-                                            </button>
-                                        }
-                                    </div>
-                                </td>
-                            </tr>
-                        }
-                    </tbody>
-                </table>
-            </div>
-            <Pagination CurrentPage="_page" TotalPages="_paged.TotalPages" OnPageChange="LoadPage" />
-        }
-    </div>
-
+<div class="d-flex justify-space-between align-center mb-4">
+    <MudText Typo="Typo.h5" Style="font-weight:700;">Orders</MudText>
+    <MudButton Href="orders/create" Variant="Variant.Filled" Color="Color.Warning"
+               StartIcon="@Icons.Material.Filled.AddShoppingCart">New Order</MudButton>
 </div>
 
+<MudTable Items="@_paged?.Items" Hover="true" Loading="_loading" LoadingProgressColor="Color.Warning"
+          Elevation="2" Breakpoint="Breakpoint.Sm">
+    <NoRecordsContent>
+        <MudText Class="pa-4" Align="Align.Center">No orders yet.</MudText>
+    </NoRecordsContent>
+    <HeaderContent>
+        <MudTh>Order</MudTh>
+        <MudTh>Customer</MudTh>
+        <MudTh>Status</MudTh>
+        <MudTh>Discount</MudTh>
+        <MudTh Style="text-align:right;">Total</MudTh>
+        <MudTh></MudTh>
+    </HeaderContent>
+    <RowTemplate>
+        <MudTd DataLabel="Order">
+            <MudText Typo="Typo.body2" Style="font-weight:700;">#GH-@context.OrderNumber</MudText>
+            <MudText Typo="Typo.caption" Color="Color.Secondary">@context.CreatedAt.ToString("dd MMM yyyy, HH:mm")</MudText>
+        </MudTd>
+        <MudTd DataLabel="Customer">
+            @(string.IsNullOrEmpty(context.CustomerName) ? "—" : context.CustomerName)
+        </MudTd>
+        <MudTd DataLabel="Status">
+            <MudChip Size="Size.Small" Color="@GetStatusColor(context.Status)">@context.Status</MudChip>
+        </MudTd>
+        <MudTd DataLabel="Discount">
+            @if (context.Discount > 0) {
+                <MudText Color="Color.Success" Style="font-weight:600;">-@context.Discount%</MudText>
+            } else {
+                <MudText Color="Color.Secondary">—</MudText>
+            }
+        </MudTd>
+        <MudTd DataLabel="Total" Style="text-align:right;font-weight:700;">
+            R$ @context.Total.ToString("F2")
+        </MudTd>
+        <MudTd>
+            <div class="d-flex justify-end gap-1">
+                <MudIconButton Icon="@Icons.Material.Filled.Visibility" Size="Size.Small"
+                               Href="@($"orders/{context.Id}")" Color="Color.Default" />
+                @if (context.Status == OrderStatus.PENDING || context.Status == OrderStatus.CANCELLED) {
+                    <MudIconButton Icon="@Icons.Material.Filled.Delete" Size="Size.Small"
+                                   Color="Color.Error" OnClick="@(() => DeleteAsync(context.Id))" />
+                }
+            </div>
+        </MudTd>
+    </RowTemplate>
+</MudTable>
+
+<Pagination CurrentPage="_page" TotalPages="@(_paged?.TotalPages ?? 1)" OnPageChange="LoadPage" />
+
 @code {
-    private Toast _toast = default!;
     private PagedResponse<OrderResponse>? _paged;
     private bool _loading = true;
     private int _page = 1;
@@ -106,24 +71,27 @@
         _loading = true; _page = page;
         var result = await OrderSvc.GetAllAsync(page);
         if (result.IsSuccess) _paged = result.Data;
-        else await _toast.ShowAsync(result.ErrorMessage!);
+        else Snackbar.Add(result.ErrorMessage!, Severity.Error);
         _loading = false;
     }
 
     private async Task DeleteAsync(Guid id) {
-        if (!await JS.InvokeAsync<bool>("confirm", "Delete this order?")) return;
+        var confirmed = await DialogSvc.ShowMessageBox(
+            "Delete Order", "This action cannot be undone.",
+            yesText: "Delete", cancelText: "Cancel");
+        if (confirmed != true) return;
         var result = await OrderSvc.DeleteAsync(id);
         if (result.IsSuccess) await LoadPage(_page);
-        else await _toast.ShowAsync(result.ErrorMessage!);
+        else Snackbar.Add(result.ErrorMessage!, Severity.Error);
     }
 
-    private static string StatusClass(OrderStatus s) => s switch {
-        OrderStatus.PENDING   => "bg-amber-100 text-amber-800",
-        OrderStatus.CONFIRMED => "bg-blue-100 text-blue-800",
-        OrderStatus.CANCELLED => "bg-zinc-100 text-zinc-600",
-        OrderStatus.PAID      => "bg-emerald-100 text-emerald-800",
-        OrderStatus.READY     => "bg-cyan-100 text-cyan-800",
-        OrderStatus.DELIVERED => "bg-zinc-800 text-white",
-        _                     => "bg-zinc-100 text-zinc-600"
+    private static Color GetStatusColor(OrderStatus s) => s switch {
+        OrderStatus.PENDING   => Color.Warning,
+        OrderStatus.CONFIRMED => Color.Info,
+        OrderStatus.CANCELLED => Color.Default,
+        OrderStatus.PAID      => Color.Success,
+        OrderStatus.READY     => Color.Tertiary,
+        OrderStatus.DELIVERED => Color.Dark,
+        _                     => Color.Default
     };
 }

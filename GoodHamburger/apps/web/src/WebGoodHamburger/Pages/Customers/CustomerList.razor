@@ -1,64 +1,66 @@
 @page "/customers"
 @inject CustomerService CustomerSvc
-@inject NavigationManager Nav
-@inject IJSRuntime JS
+@inject ISnackbar Snackbar
+@inject IDialogService DialogSvc
 
-<PageTitle>Customers</PageTitle>
+<PageTitle>Customers — GoodHamburger</PageTitle>
 
-<div class="d-flex justify-content-between align-items-center mb-3">
-    <h2>Customers</h2>
-    <a href="customers/create" class="btn btn-primary">+ New Customer</a>
+<div class="d-flex justify-space-between align-center mb-4">
+    <MudText Typo="Typo.h5" Style="font-weight:700;">Customers</MudText>
+    <MudButton Href="customers/create" Variant="Variant.Filled" Color="Color.Warning"
+               StartIcon="@Icons.Material.Filled.PersonAdd">New Customer</MudButton>
 </div>
 
-@if (_error is not null) {
-    <div class="alert alert-danger">@_error</div>
-}
+<MudTable Items="@_paged?.Items" Hover="true" Loading="_loading" LoadingProgressColor="Color.Warning"
+          Elevation="2" Breakpoint="Breakpoint.Sm">
+    <NoRecordsContent>
+        <MudText Class="pa-4" Align="Align.Center">No customers found.</MudText>
+    </NoRecordsContent>
+    <HeaderContent>
+        <MudTh>Name</MudTh>
+        <MudTh>Email</MudTh>
+        <MudTh>Phone</MudTh>
+        <MudTh></MudTh>
+    </HeaderContent>
+    <RowTemplate>
+        <MudTd DataLabel="Name">@context.FirstName @context.LastName</MudTd>
+        <MudTd DataLabel="Email">@context.Email</MudTd>
+        <MudTd DataLabel="Phone">@context.Phone</MudTd>
+        <MudTd>
+            <div class="d-flex justify-end gap-1">
+                <MudIconButton Icon="@Icons.Material.Filled.Edit" Size="Size.Small"
+                               Href="@($"customers/edit/{context.Id}")" Color="Color.Default" />
+                <MudIconButton Icon="@Icons.Material.Filled.Delete" Size="Size.Small"
+                               Color="Color.Error" OnClick="@(() => DeleteAsync(context.Id))" />
+            </div>
+        </MudTd>
+    </RowTemplate>
+</MudTable>
 
-@if (_loading) {
-    <p><em>Loading...</em></p>
-} else if (_paged is null || _paged.Items.Count == 0) {
-    <p>No customers found.</p>
-} else {
-    <table class="table table-striped table-hover">
-        <thead><tr><th>Name</th><th>Email</th><th>Phone</th><th></th></tr></thead>
-        <tbody>
-            @foreach (var c in _paged.Items) {
-                <tr>
-                    <td>@c.FirstName @c.LastName</td>
-                    <td>@c.Email</td>
-                    <td>@c.Phone</td>
-                    <td class="text-end">
-                        <a href="customers/edit/@c.Id" class="btn btn-sm btn-outline-secondary me-1">Edit</a>
-                        <button class="btn btn-sm btn-outline-danger" @onclick="() => DeleteAsync(c.Id)">Delete</button>
-                    </td>
-                </tr>
-            }
-        </tbody>
-    </table>
-    <Pagination CurrentPage="_page" TotalPages="_paged.TotalPages" OnPageChange="LoadPage" />
-}
+<Pagination CurrentPage="_page" TotalPages="@(_paged?.TotalPages ?? 1)" OnPageChange="LoadPage" />
 
 @code {
     private PagedResponse<CustomerResponse>? _paged;
     private bool _loading = true;
-    private string? _error;
     private int _page = 1;
 
     protected override async Task OnInitializedAsync() => await LoadPage(1);
 
     private async Task LoadPage(int page) {
-        _loading = true; _error = null;
-        _page = page;
+        _loading = true; _page = page;
         var result = await CustomerSvc.GetAllAsync(page);
         if (result.IsSuccess) _paged = result.Data;
-        else _error = result.ErrorMessage;
+        else Snackbar.Add(result.ErrorMessage!, Severity.Error);
         _loading = false;
     }
 
     private async Task DeleteAsync(Guid id) {
-        if (!await JS.InvokeAsync<bool>("confirm", "Delete this customer?")) return;
+        var confirmed = await DialogSvc.ShowMessageBox(
+            "Delete Customer", "This action cannot be undone.",
+            yesText: "Delete", cancelText: "Cancel");
+        if (confirmed != true) return;
         var result = await CustomerSvc.DeleteAsync(id);
         if (result.IsSuccess) await LoadPage(_page);
-        else _error = result.ErrorMessage;
+        else Snackbar.Add(result.ErrorMessage!, Severity.Error);
     }
 }

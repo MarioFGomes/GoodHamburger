@@ -2,6 +2,7 @@ using System.Text.Json;
 using System.Text.Json.Serialization;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Web;
+using MudBlazor.Services;
 using WebGoodHamburger.Services;
 
 namespace WebGoodHamburger {
@@ -11,6 +12,15 @@ namespace WebGoodHamburger {
 
             builder.Services.AddRazorPages();
             builder.Services.AddServerSideBlazor();
+            builder.Services.AddMudServices(config => {
+                config.SnackbarConfiguration.PositionClass = MudBlazor.Defaults.Classes.Position.TopRight;
+                config.SnackbarConfiguration.PreventDuplicates = false;
+                config.SnackbarConfiguration.NewestOnTop = true;
+                config.SnackbarConfiguration.VisibleStateDuration = 4000;
+                config.SnackbarConfiguration.ShowTransitionDuration = 200;
+                config.SnackbarConfiguration.HideTransitionDuration = 200;
+                config.SnackbarConfiguration.SnackbarVariant = MudBlazor.Variant.Filled;
+            });
 
             builder.Services.AddSingleton(new JsonSerializerOptions {
                 PropertyNameCaseInsensitive = true,

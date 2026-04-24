@@ -1,44 +1,17 @@
-<div class="top-row ps-3 navbar navbar-dark">
-    <div class="container-fluid">
-        <a class="navbar-brand" href="">Good Hamburger</a>
-        <button title="Navigation menu" class="navbar-toggler" @onclick="ToggleNavMenu">
-            <span class="navbar-toggler-icon"></span>
-        </button>
-    </div>
-</div>
-
-<div class="@NavMenuCssClass nav-scrollable" @onclick="ToggleNavMenu">
-    <nav class="flex-column">
-        <div class="nav-item px-3">
-            <NavLink class="nav-link" href="" Match="NavLinkMatch.All">
-                <span class="oi oi-home" aria-hidden="true"></span> Dashboard
-            </NavLink>
-        </div>
-        <div class="nav-item px-3">
-            <NavLink class="nav-link" href="customers">
-                <span class="oi oi-people" aria-hidden="true"></span> Customers
-            </NavLink>
-        </div>
-        <div class="nav-item px-3">
-            <NavLink class="nav-link" href="menus">
-                <span class="oi oi-list" aria-hidden="true"></span> Menus
-            </NavLink>
-        </div>
-        <div class="nav-item px-3">
-            <NavLink class="nav-link" href="side-dishes">
-                <span class="oi oi-fork" aria-hidden="true"></span> Side Dishes
-            </NavLink>
-        </div>
-        <div class="nav-item px-3">
-            <NavLink class="nav-link" href="orders">
-                <span class="oi oi-cart" aria-hidden="true"></span> Orders
-            </NavLink>
-        </div>
-    </nav>
-</div>
-
-@code {
-    private bool collapseNavMenu = true;
-    private string? NavMenuCssClass => collapseNavMenu ? "collapse" : null;
-    private void ToggleNavMenu() => collapseNavMenu = !collapseNavMenu;
-}
+<MudNavMenu>
+    <MudNavLink Href="" Match="NavLinkMatch.All" Icon="@Icons.Material.Filled.Dashboard">
+        Dashboard
+    </MudNavLink>
+    <MudNavLink Href="customers" Icon="@Icons.Material.Filled.People">
+        Customers
+    </MudNavLink>
+    <MudNavLink Href="menus" Icon="@Icons.Material.Filled.MenuBook">
+        Menus
+    </MudNavLink>
+    <MudNavLink Href="side-dishes" Icon="@Icons.Material.Filled.RiceBowl">
+        Side Dishes
+    </MudNavLink>
+    <MudNavLink Href="orders" Icon="@Icons.Material.Filled.ShoppingCart">
+        Orders
+    </MudNavLink>
+</MudNavMenu>

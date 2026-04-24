@@ -258,7 +258,7 @@
                   "pm.test('Estrutura de paginação válida', function () {",
                   "    var json = pm.response.json();",
                   "    pm.expect(json.items).to.be.an('array');",
-                  "    pm.expect(json.totalCount).to.be.a('number');",
+                  "    pm.expect(json.totalItems).to.be.a('number');",
                   "});"
                 ],
                 "type": "text/javascript"
@@ -726,7 +726,7 @@
                   "pm.test('Paginação válida', function () {",
                   "    var json = pm.response.json();",
                   "    pm.expect(json.items).to.be.an('array');",
-                  "    pm.expect(json.totalCount).to.be.a('number');",
+                  "    pm.expect(json.totalItems).to.be.a('number');",
                   "});"
                 ],
                 "type": "text/javascript"
@@ -1740,7 +1740,7 @@
                   "pm.test('Lista paginada retornada', function () {",
                   "    var json = pm.response.json();",
                   "    pm.expect(json.items).to.be.an('array');",
-                  "    pm.expect(json.totalCount).to.be.a('number');",
+                  "    pm.expect(json.totalItems).to.be.a('number');",
                   "});"
                 ],
                 "type": "text/javascript"

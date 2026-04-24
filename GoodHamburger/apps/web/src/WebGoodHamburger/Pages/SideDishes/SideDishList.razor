@@ -1,61 +1,78 @@
 @page "/side-dishes"
 @inject SideDishService SideDishSvc
-@inject IJSRuntime JS
+@inject ISnackbar Snackbar
+@inject IDialogService DialogSvc
 
-<PageTitle>Side Dishes</PageTitle>
+<PageTitle>Side Dishes — GoodHamburger</PageTitle>
 
-<div class="d-flex justify-content-between align-items-center mb-3">
-    <h2>Side Dishes</h2>
-    <a href="side-dishes/create" class="btn btn-primary">+ New Side Dish</a>
+<div class="d-flex justify-space-between align-center mb-4">
+    <MudText Typo="Typo.h5" Style="font-weight:700;">Side Dishes</MudText>
+    <MudButton Href="side-dishes/create" Variant="Variant.Filled" Color="Color.Warning"
+               StartIcon="@Icons.Material.Filled.Add">New Side Dish</MudButton>
 </div>
 
-@if (_error is not null) { <div class="alert alert-danger">@_error</div> }
+<MudTable Items="@_paged?.Items" Hover="true" Loading="_loading" LoadingProgressColor="Color.Warning"
+          Elevation="2" Breakpoint="Breakpoint.Sm">
+    <NoRecordsContent>
+        <MudText Class="pa-4" Align="Align.Center">No side dishes found.</MudText>
+    </NoRecordsContent>
+    <HeaderContent>
+        <MudTh>Name</MudTh>
+        <MudTh>Category</MudTh>
+        <MudTh>Price</MudTh>
+        <MudTh>Status</MudTh>
+        <MudTh></MudTh>
+    </HeaderContent>
+    <RowTemplate>
+        <MudTd DataLabel="Name">@context.Name</MudTd>
+        <MudTd DataLabel="Category">
+            <MudChip Size="Size.Small"
+                     Color="@(context.Category == SideDishCategory.FRIES ? Color.Warning : Color.Info)">
+                @context.Category
+            </MudChip>
+        </MudTd>
+        <MudTd DataLabel="Price">R$ @context.Price?.ToString("F2")</MudTd>
+        <MudTd DataLabel="Status">
+            <MudChip Size="Size.Small"
+                     Color="@(context.Status == MenuStatus.Available ? Color.Success : Color.Default)">
+                @context.Status
+            </MudChip>
+        </MudTd>
+        <MudTd>
+            <div class="d-flex justify-end gap-1">
+                <MudIconButton Icon="@Icons.Material.Filled.Edit" Size="Size.Small"
+                               Href="@($"side-dishes/edit/{context.Id}")" Color="Color.Default" />
+                <MudIconButton Icon="@Icons.Material.Filled.Delete" Size="Size.Small"
+                               Color="Color.Error" OnClick="@(() => DeleteAsync(context.Id))" />
+            </div>
+        </MudTd>
+    </RowTemplate>
+</MudTable>
 
-@if (_loading) {
-    <p><em>Loading...</em></p>
-} else if (_paged is null || _paged.Items.Count == 0) {
-    <p>No side dishes found.</p>
-} else {
-    <table class="table table-striped table-hover">
-        <thead><tr><th>Name</th><th>Category</th><th>Price</th><th>Status</th><th></th></tr></thead>
-        <tbody>
-            @foreach (var s in _paged.Items) {
-                <tr>
-                    <td>@s.Name</td>
-                    <td><span class="badge @(s.Category == SideDishCategory.FRIES ? "bg-warning text-dark" : "bg-info text-dark")">@s.Category</span></td>
-                    <td>@s.Price?.ToString("F2") @s.Currency</td>
-                    <td><span class="badge @(s.Status == MenuStatus.Available ? "bg-success" : "bg-secondary")">@s.Status</span></td>
-                    <td class="text-end">
-                        <a href="side-dishes/edit/@s.Id" class="btn btn-sm btn-outline-secondary me-1">Edit</a>
-                        <button class="btn btn-sm btn-outline-danger" @onclick="() => DeleteAsync(s.Id)">Delete</button>
-                    </td>
-                </tr>
-            }
-        </tbody>
-    </table>
-    <Pagination CurrentPage="_page" TotalPages="_paged.TotalPages" OnPageChange="LoadPage" />
-}
+<Pagination CurrentPage="_page" TotalPages="@(_paged?.TotalPages ?? 1)" OnPageChange="LoadPage" />
 
 @code {
     private PagedResponse<SideDishesResponse>? _paged;
     private bool _loading = true;
-    private string? _error;
     private int _page = 1;
 
     protected override async Task OnInitializedAsync() => await LoadPage(1);
 
     private async Task LoadPage(int page) {
-        _loading = true; _error = null; _page = page;
+        _loading = true; _page = page;
         var result = await SideDishSvc.GetAllAsync(page);
         if (result.IsSuccess) _paged = result.Data;
-        else _error = result.ErrorMessage;
+        else Snackbar.Add(result.ErrorMessage!, Severity.Error);
         _loading = false;
     }
 
     private async Task DeleteAsync(Guid id) {
-        if (!await JS.InvokeAsync<bool>("confirm", "Delete this side dish?")) return;
+        var confirmed = await DialogSvc.ShowMessageBox(
+            "Delete Side Dish", "This action cannot be undone.",
+            yesText: "Delete", cancelText: "Cancel");
+        if (confirmed != true) return;
         var result = await SideDishSvc.DeleteAsync(id);
         if (result.IsSuccess) await LoadPage(_page);
-        else _error = result.ErrorMessage;
+        else Snackbar.Add(result.ErrorMessage!, Severity.Error);
     }
 }

@@ -4,128 +4,102 @@
 @inject MenuService MenuSvc
 @inject SideDishService SideDishSvc
 @inject NavigationManager Nav
+@inject ISnackbar Snackbar
 
 <PageTitle>New Order — GoodHamburger</PageTitle>
 
-<Toast @ref="_toast" />
-
-<div class="max-w-2xl mx-auto space-y-6">
-
-    <div class="flex items-center gap-4">
-        <a href="/orders" class="p-2 hover:bg-stone-100 rounded-lg transition-colors text-zinc-500">
-            <span class="material-symbols-outlined">arrow_back</span>
-        </a>
-        <div>
-            <h1 class="text-2xl font-bold text-zinc-900 font-lexend">New Order</h1>
-            <p class="text-sm text-zinc-500 mt-0.5">Select a customer, sandwich and optional side dishes</p>
-        </div>
+<div class="d-flex align-center gap-2 mb-4">
+    <MudIconButton Icon="@Icons.Material.Filled.ArrowBack" Href="orders" Color="Color.Default" />
+    <div>
+        <MudText Typo="Typo.h5" Style="font-weight:700;">New Order</MudText>
+        <MudText Typo="Typo.body2" Color="Color.Secondary">Select a customer, sandwich and optional side dishes</MudText>
     </div>
-
-    @if (_loading) {
-        <div class="flex items-center justify-center py-16">
-            <div class="flex items-center gap-3 text-zinc-400">
-                <span class="material-symbols-outlined animate-spin">refresh</span>
-                <span class="text-sm">Loading data...</span>
-            </div>
-        </div>
-    } else {
-        <div class="bg-white rounded-xl shadow-sm border border-zinc-100 p-6">
-            <EditForm Model="_model" OnValidSubmit="SubmitAsync">
-                <DataAnnotationsValidator />
-                <div class="space-y-5">
-
-                    <div class="space-y-1">
-                        <label class="block text-sm font-medium text-zinc-700">Customer</label>
-                        <InputSelect class="gh-select" @bind-Value="_model.CustomerId">
-                            <option value="@Guid.Empty">— Select customer —</option>
-                            @foreach (var c in _customers) {
-                                <option value="@c.Id">@c.FirstName @c.LastName</option>
-                            }
-                        </InputSelect>
-                        <ValidationMessage For="() => _model.CustomerId" />
-                    </div>
-
-                    <div class="space-y-1">
-                        <label class="block text-sm font-medium text-zinc-700">Sandwich</label>
-                        <InputSelect class="gh-select" @bind-Value="_model.MenuId">
-                            <option value="@Guid.Empty">— Select sandwich —</option>
-                            @foreach (var m in _menus) {
-                                <option value="@m.Id">@m.Name — R$ @m.Price?.ToString("F2")</option>
-                            }
-                        </InputSelect>
-                        <ValidationMessage For="() => _model.MenuId" />
-                    </div>
-
-                    @if (_sideDishes.Any()) {
-                        <div class="space-y-2">
-                            <div>
-                                <label class="block text-sm font-medium text-zinc-700">Side Dishes</label>
-                                <p class="text-xs text-zinc-400 mt-0.5">Maximum 1 FRIES + 1 DRINK — adds a discount</p>
-                            </div>
-                            <div class="grid grid-cols-1 gap-2">
-                                @foreach (var s in _sideDishes) {
-                                    var isChecked = _model.SideDishIds.Contains(s.Id);
-                                    <label class="flex items-center gap-3 p-3 rounded-xl border cursor-pointer transition-colors
-                                        @(isChecked ? "border-amber-300 bg-amber-50" : "border-zinc-100 bg-zinc-50 hover:bg-stone-50")">
-                                        <input type="checkbox"
-                                               class="w-4 h-4 rounded accent-amber-500"
-                                               checked="@isChecked"
-                                               @onchange="e => ToggleSideDish(s.Id, (bool)e.Value!)" />
-                                        <div class="flex items-center gap-2 flex-1 min-w-0">
-                                            <div class="w-7 h-7 rounded-lg flex items-center justify-center shrink-0
-                                                @(s.Category == SideDishCategory.FRIES ? "bg-amber-100" : "bg-blue-100")">
-                                                <span class="material-symbols-outlined @(s.Category == SideDishCategory.FRIES ? "text-amber-600" : "text-blue-500")"
-                                                      style="font-size:14px;font-variation-settings:'FILL' 1">
-                                                    @(s.Category == SideDishCategory.FRIES ? "fastfood" : "local_drink")
-                                                </span>
-                                            </div>
-                                            <span class="text-sm font-medium text-zinc-800">@s.Name</span>
-                                            <span class="text-xs text-zinc-400 ml-auto shrink-0">R$ @s.Price?.ToString("F2")</span>
-                                        </div>
-                                    </label>
-                                }
-                            </div>
-                        </div>
-                    }
-
-                    <div class="rounded-xl bg-stone-50 border border-zinc-100 p-4 space-y-1.5 text-sm">
-                        <p class="font-medium text-zinc-700 mb-2">Discount rules</p>
-                        <div class="flex items-center gap-2 text-zinc-500">
-                            <span class="material-symbols-outlined text-amber-500" style="font-size:16px">fastfood</span>
-                            <span>1 FRIES only → <span class="font-semibold text-emerald-600">10% off</span></span>
-                        </div>
-                        <div class="flex items-center gap-2 text-zinc-500">
-                            <span class="material-symbols-outlined text-blue-500" style="font-size:16px">local_drink</span>
-                            <span>1 DRINK only → <span class="font-semibold text-emerald-600">15% off</span></span>
-                        </div>
-                        <div class="flex items-center gap-2 text-zinc-500">
-                            <span class="material-symbols-outlined text-violet-500" style="font-size:16px">restaurant</span>
-                            <span>FRIES + DRINK combo → <span class="font-semibold text-emerald-600">20% off</span></span>
-                        </div>
-                    </div>
-
-                </div>
-
-                <div class="flex gap-3 mt-6 pt-6 border-t border-zinc-100">
-                    <button type="submit" class="gh-btn gh-btn-primary" disabled="@_saving">
-                        @if (_saving) {
-                            <span class="material-symbols-outlined animate-spin" style="font-size:16px">refresh</span>
-                            <span>Placing order...</span>
-                        } else {
-                            <span class="material-symbols-outlined" style="font-size:16px">add_shopping_cart</span>
-                            <span>Place Order</span>
-                        }
-                    </button>
-                    <a href="/orders" class="gh-btn gh-btn-secondary">Cancel</a>
-                </div>
-            </EditForm>
-        </div>
-    }
-
 </div>
 
+@if (_loading) {
+    <MudProgressLinear Indeterminate Color="Color.Warning" />
+} else {
+    <MudPaper Elevation="2" Class="pa-6" Style="max-width:680px;">
+        <EditForm Model="_model" OnValidSubmit="SubmitAsync">
+            <DataAnnotationsValidator />
+            <MudGrid Spacing="3">
+
+                <MudItem xs="12">
+                    <MudSelect @bind-Value="_model.CustomerId" Label="Customer"
+                               For="() => _model.CustomerId" Variant="Variant.Outlined" Required="true">
+                        @foreach (var c in _customers) {
+                            <MudSelectItem Value="@c.Id">@c.FirstName @c.LastName</MudSelectItem>
+                        }
+                    </MudSelect>
+                </MudItem>
+
+                <MudItem xs="12">
+                    <MudSelect @bind-Value="_model.MenuId" Label="Sandwich"
+                               For="() => _model.MenuId" Variant="Variant.Outlined" Required="true">
+                        @foreach (var m in _menus) {
+                            <MudSelectItem Value="@m.Id">@m.Name — R$ @m.Price?.ToString("F2")</MudSelectItem>
+                        }
+                    </MudSelect>
+                </MudItem>
+
+                @if (_sideDishes.Any()) {
+                    <MudItem xs="12">
+                        <MudText Typo="Typo.subtitle2" Class="mb-1">Side Dishes</MudText>
+                        <MudText Typo="Typo.caption" Color="Color.Secondary" Class="mb-3">
+                            Maximum 1 FRIES + 1 DRINK — adds a discount
+                        </MudText>
+                        @foreach (var s in _sideDishes) {
+                            var sd = s;
+                            <MudPaper Outlined="true"
+                                      Class="@($"pa-3 mb-2 rounded {(_model.SideDishIds.Contains(sd.Id) ? "mud-border-warning" : "")}")"
+                                      Style="@(_model.SideDishIds.Contains(sd.Id) ? "background:rgba(254,174,44,0.08);" : "")">
+                                <div class="d-flex align-center gap-3">
+                                    <MudCheckBox Value="@_model.SideDishIds.Contains(sd.Id)"
+                                                 ValueChanged="@((bool v) => ToggleSideDish(sd.Id, v))"
+                                                 Color="Color.Warning" />
+                                    <MudIcon Icon="@(sd.Category == SideDishCategory.FRIES ? Icons.Material.Filled.Fastfood : Icons.Material.Filled.LocalDrink)"
+                                             Color="@(sd.Category == SideDishCategory.FRIES ? Color.Warning : Color.Info)"
+                                             Size="Size.Small" />
+                                    <MudText Typo="Typo.body2" Style="flex:1;">@sd.Name</MudText>
+                                    <MudText Typo="Typo.caption" Color="Color.Secondary">R$ @sd.Price?.ToString("F2")</MudText>
+                                </div>
+                            </MudPaper>
+                        }
+                    </MudItem>
+                }
+
+                <MudItem xs="12">
+                    <MudPaper Outlined="true" Class="pa-4 rounded">
+                        <MudText Typo="Typo.subtitle2" Class="mb-2">Discount rules</MudText>
+                        <div class="d-flex align-center gap-2 mb-1">
+                            <MudIcon Icon="@Icons.Material.Filled.Fastfood" Color="Color.Warning" Size="Size.Small" />
+                            <MudText Typo="Typo.body2">1 FRIES only → <strong style="color:#16a34a;">10% off</strong></MudText>
+                        </div>
+                        <div class="d-flex align-center gap-2 mb-1">
+                            <MudIcon Icon="@Icons.Material.Filled.LocalDrink" Color="Color.Info" Size="Size.Small" />
+                            <MudText Typo="Typo.body2">1 DRINK only → <strong style="color:#16a34a;">15% off</strong></MudText>
+                        </div>
+                        <div class="d-flex align-center gap-2">
+                            <MudIcon Icon="@Icons.Material.Filled.Restaurant" Color="Color.Secondary" Size="Size.Small" />
+                            <MudText Typo="Typo.body2">FRIES + DRINK combo → <strong style="color:#16a34a;">20% off</strong></MudText>
+                        </div>
+                    </MudPaper>
+                </MudItem>
+
+            </MudGrid>
+
+            <div class="d-flex gap-3 mt-6">
+                <MudButton ButtonType="ButtonType.Submit" Variant="Variant.Filled" Color="Color.Warning"
+                           Disabled="_saving" StartIcon="@Icons.Material.Filled.AddShoppingCart">
+                    @(_saving ? "Placing order..." : "Place Order")
+                </MudButton>
+                <MudButton Href="orders" Variant="Variant.Outlined" Color="Color.Default">Cancel</MudButton>
+            </div>
+        </EditForm>
+    </MudPaper>
+}
+
 @code {
-    private Toast _toast = default!;
     private readonly CreateOrderRequest _model = new();
     private List<CustomerResponse> _customers = new();
     private List<MenuResponse> _menus = new();
@@ -152,6 +126,6 @@
         _saving = true;
         var result = await OrderSvc.CreateAsync(_model);
         if (result.IsSuccess) Nav.NavigateTo($"/orders/{result.Data!.Id}");
-        else { await _toast.ShowAsync(result.ErrorMessage!); _saving = false; }
+        else { Snackbar.Add(result.ErrorMessage!, Severity.Error); _saving = false; }
     }
 }
