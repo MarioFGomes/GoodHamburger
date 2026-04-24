@@ -1,11 +1,13 @@
-# GoodHamburger API
+# GoodHamburger
 
 [![.NET](https://img.shields.io/badge/.NET-7.0-512BD4?logo=dotnet)](https://dotnet.microsoft.com/)
 [![Architecture](https://img.shields.io/badge/Architecture-Clean%20Architecture-blue)]()
 [![Tests](https://img.shields.io/badge/Tests-141%20passing-brightgreen)]()
+[![MudBlazor](https://img.shields.io/badge/UI-MudBlazor%206-594AE2?logo=blazor)](https://mudblazor.com/)
+[![CI](https://img.shields.io/badge/CI-GitHub%20Actions-2088FF?logo=githubactions)](https://github.com/features/actions)
 [![License](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
-REST API para gestão de uma hamburgueria — pedidos, menu, acompanhamentos e clientes — construída com **Clean Architecture**, **Domain-Driven Design** e **TDD** em **.NET 7.0**.
+Aplicação full-stack de gestão de hamburgueria — pedidos, menu, acompanhamentos e clientes — construída com **Clean Architecture**, **Domain-Driven Design** e **TDD** em **.NET 7.0**, com interface **Blazor Server + MudBlazor**.
 
 ---
 
@@ -17,23 +19,25 @@ REST API para gestão de uma hamburgueria — pedidos, menu, acompanhamentos e c
 - [Domínio e Regras de Negócio](#domínio-e-regras-de-negócio)
 - [Endpoints](#endpoints)
 - [Stack Tecnológica](#stack-tecnológica)
+- [Frontend Blazor](#frontend-blazor)
 - [Padrões e Princípios](#padrões-e-princípios)
 - [Testes](#testes)
 - [Como Executar](#como-executar)
+- [CI/CD](#cicd)
 - [O que ficou de fora](#o-que-ficou-de-fora)
 
 ---
 
 ## Visão Geral
 
-O GoodHamburger é uma API que permite gerir o ciclo completo de uma hamburgueria digital:
+O GoodHamburger é uma aplicação full-stack que permite gerir o ciclo completo de uma hamburgueria digital:
 
 - Cadastro e gestão de **clientes**
 - Criação e manutenção do **menu** de sanduíches
 - Gestão de **acompanhamentos** (batata frita e bebida)
 - Criação e gestão de **pedidos** com regras de desconto automáticas
 
-A API foi desenhada com foco em **separação de responsabilidades**, **testabilidade** e **domínio expressivo** — as regras de negócio vivem nas entidades de domínio, não em controllers ou services genéricos.
+A API foi desenhada com foco em **separação de responsabilidades**, **testabilidade** e **domínio expressivo** — as regras de negócio vivem nas entidades de domínio, não em controllers ou services genéricos. O frontend em Blazor Server consome a API via HTTP e expõe uma interface Material Design completa para todas as operações CRUD.
 
 ---
 
@@ -74,7 +78,7 @@ Os cálculos de desconto, as validações de transição de estado e as regras d
 
 ### Repository Pattern + Unit of Work
 
-Todos os repositórios implementam um `IBaseRepository<T>` genérico com operações comuns (Get, Add, Replace, Delete, Count, Any). Repositórios específicos (`IOrderRepository`) estendem com queries próprias (`GetWithItemsAsync`, `GetAllWithItemsAsync`).
+Todos os repositórios implementam um `IBaseRepository<T>` genérico com operações comuns (Get, Add, Replace, Delete, Count, Any). Repositórios específicos (`IOrderRepository`) estendem com queries próprias (`GetWithItemsAsync`, `GetAllWithItemsAsync`, `NextOrderNumberAsync`).
 
 O `IUnitOfWork` abstrai transações — nas operações críticas (criação e eliminação de pedidos) usa-se `BeginTransaction → Commit / Rollback`. O padrão suporta tanto SQL Server como InMemory (para testes e desenvolvimento).
 
@@ -126,7 +130,8 @@ GoodHamburger/
 │   │   │   │   │   ├── GoodHamburgerContext.cs
 │   │   │   │   │   ├── Configurations/ # Fluent API do EF Core por entidade
 │   │   │   │   │   ├── Repositories/   # Implementações concretas
-│   │   │   │   │   └── Seeds/          # Dados de seed
+│   │   │   │   │   ├── Seeds/          # SeedData.cs (GUIDs fixos, chamado em OnModelCreating)
+│   │   │   │   │   └── Migrations/     # InitialCreate + SeedInitialData
 │   │   │   │   └── Bootstrapper.cs
 │   │   │   │
 │   │   │   └── GoodHamburger.API/
@@ -136,13 +141,33 @@ GoodHamburger/
 │   │   │       └── Configuration/      # ApiBootstrapper (Swagger, CORS, Versioning)
 │   │   │
 │   │   └── test/
-│   │       ├── DomainTest/             # Testes unitários de entidades de domínio (38 testes)
-│   │       ├── UseCaseTest/            # Testes unitários de use cases (51 testes)
-│   │       ├── Validators/             # Testes unitários de validators (52 testes)
+│   │       ├── DomainTest/             # 38 testes unitários de entidades de domínio
+│   │       ├── UseCaseTest/            # 51 testes unitários de use cases
+│   │       ├── Validators/             # 52 testes unitários de validators
 │   │       └── Utils/                  # Builders e mocks reutilizáveis
 │   │
-│   └── web/                            # Frontend Blazor (em desenvolvimento)
+│   └── web/
+│       └── src/
+│           └── WebGoodHamburger/
+│               ├── Pages/
+│               │   ├── Index.razor             # Dashboard
+│               │   ├── Customers/              # List, Create, Edit
+│               │   ├── Menus/                  # List, Create, Edit
+│               │   ├── SideDishes/             # List, Create, Edit
+│               │   └── Orders/                 # List, Create, Detail
+│               ├── Shared/
+│               │   ├── MainLayout.razor        # MudLayout + tema personalizado
+│               │   ├── NavMenu.razor           # MudNavMenu
+│               │   └── Pagination.razor        # MudPagination
+│               ├── Services/                   # HTTP clients para a API
+│               │   └── ApiErrorParser.cs       # Extrai "detail" do ProblemDetails JSON
+│               ├── Models/                     # DTOs do lado web (espelham respostas da API)
+│               └── Program.cs
 │
+├── Dockerfile.api
+├── Dockerfile.web
+├── docker-compose.yml
+├── GoodHamburger.postman_collection.json
 └── GoodHamburger.sln
 ```
 
@@ -264,6 +289,13 @@ Base URL: `/api/v1`
 | **Asp.Versioning** | 7.1.1 | Versionamento de API |
 | **Swashbuckle** | 6.5.0 | Documentação OpenAPI/Swagger |
 
+### Frontend
+
+| Tecnologia | Versão | Utilização |
+|-----------|--------|-----------|
+| **Blazor Server** | .NET 7.0 | Framework frontend server-side |
+| **MudBlazor** | 6.21.0 | Componentes Material Design |
+
 ### Testes
 
 | Tecnologia | Versão | Utilização |
@@ -278,8 +310,47 @@ Base URL: `/api/v1`
 
 | Modo | Utilização |
 |------|-----------|
-| **SQL Server** | Produção |
-| **InMemory (EF Core)** | Desenvolvimento e testes |
+| **SQL Server** | Produção / Docker |
+| **InMemory (EF Core)** | Desenvolvimento local e testes |
+
+---
+
+## Frontend Blazor
+
+O frontend é uma aplicação **Blazor Server** que consome a API REST e oferece uma interface Material Design completa.
+
+### Tema e Design
+
+- **AppBar e Drawer**: fundo escuro `#181512` (charcoal)
+- **Primary**: amber `#feae2c` com texto escuro — botões de ação, paginação, chips ativos
+- **Layout**: `MudDrawer` responsivo (colapsa em mobile), `MudAppBar` fixo no topo
+- **Notificações**: `ISnackbar` (MudBlazor) para erros e confirmações — toasts automáticos
+- **Confirmação de delete**: `IDialogService.ShowMessageBox` — diálogo nativo do MudBlazor
+
+### Páginas
+
+| Página | Descrição |
+|--------|-----------|
+| **Dashboard** | 4 cards com contagem de Customers, Menus, Side Dishes e Orders |
+| **Customers** | Lista (MudTable), criar, editar |
+| **Menus** | Lista com badge de status (Available/Unavailable), criar, editar |
+| **Side Dishes** | Lista com badge de categoria (FRIES/DRINK) e status, criar, editar |
+| **Orders** | Lista com status colorido (PENDING/CONFIRMED/CANCELLED/...) e total |
+| **New Order** | Seleção de cliente e sanduíche, escolha de acompanhamentos com regras de desconto visíveis |
+| **Order Detail** | Header com ações (Confirm/Cancel), métricas (Subtotal/Desconto/Total), itens com acompanhamentos |
+
+### Comunicação com a API
+
+Os serviços HTTP (`CustomerService`, `MenuService`, `SideDishService`, `OrderService`) usam um `HttpClient` com nome configurado:
+
+```csharp
+// Program.cs
+builder.Services.AddHttpClient("GoodHamburgerApi", client => {
+    client.BaseAddress = new Uri(builder.Configuration["ApiSettings:BaseUrl"]!);
+});
+```
+
+Erros HTTP são tratados via `ApiErrorParser.Extract()` que extrai apenas o campo `detail` do JSON ProblemDetails, evitando mostrar stack traces ao utilizador.
 
 ---
 
@@ -396,31 +467,25 @@ dotnet test GoodHamburger/apps/api/test/UseCases/UseCaseTest/UseCaseTest.csproj
 
 - [.NET 7.0 SDK](https://dotnet.microsoft.com/download/dotnet/7.0)
 - SQL Server (opcional — por defeito usa InMemory)
-- [Docker](https://www.docker.com/) (opcional — para executar com containers)
+- [Docker Desktop](https://www.docker.com/) (recomendado — forma mais simples de executar toda a stack)
 
-### Configuração
-
-```json
-// appsettings.json
-{
-  "ConnectionStrings": {
-    "SQLServer": "Server=localhost;Database=GoodHamburger;Trusted_Connection=True;"
-  },
-  "Configurations": {
-    "InMemoryDataBase": true
-  }
-}
-```
-
-Para usar SQL Server, altere `InMemoryDataBase` para `false` e aplique as migrations:
+### Executar com Docker (recomendado)
 
 ```bash
-dotnet ef database update \
-  --project GoodHamburger/apps/api/src/GoodHamburger.Infrastructure/GoodHamburger.Infrastructure.csproj \
-  --startup-project GoodHamburger/apps/api/src/GoodHamburger.API/GoodHamburger.API.csproj
+cd GoodHamburger
+docker compose up --build
 ```
 
-### Executar
+| Serviço | URL |
+|---------|-----|
+| **API** | `http://localhost:5000` |
+| **Frontend (Blazor)** | `http://localhost:5001` |
+| **Swagger UI** | `http://localhost:5000/swagger` |
+| **SQL Server** | `localhost:1433` |
+
+As migrations e os dados de seed são aplicados automaticamente no startup da API. A stack inclui health check no SQL Server — a API só arranca depois de a base de dados estar disponível.
+
+### Executar localmente (apenas API)
 
 ```bash
 # Restaurar dependências
@@ -436,25 +501,56 @@ dotnet run --project GoodHamburger/apps/api/src/GoodHamburger.API
 A API fica disponível em `https://localhost:7162`.  
 Swagger UI em `https://localhost:7162/swagger`.
 
-### Executar com Docker
+Por defeito, `InMemoryDataBase: true` — não é necessário SQL Server.
+
+### Usar SQL Server
+
+Altere `InMemoryDataBase` para `false` em `appsettings.json` e aplique as migrations:
 
 ```bash
-cd GoodHamburger
-docker compose up --build
+dotnet ef database update \
+  --project GoodHamburger/apps/api/src/GoodHamburger.Infrastructure/GoodHamburger.Infrastructure.csproj \
+  --startup-project GoodHamburger/apps/api/src/GoodHamburger.API/GoodHamburger.API.csproj
 ```
 
-| Serviço | URL |
-|---------|-----|
-| API | `http://localhost:5000` |
-| Frontend (Blazor) | `http://localhost:5001` |
-| SQL Server | `localhost:1433` |
+### Dados de Seed
 
-As migrations são aplicadas automaticamente no startup da API. A stack inclui `Dockerfile.api`, `Dockerfile.web` e `docker-compose.yml` com health check no SQL Server.
+Com SQL Server ativo (InMemoryDataBase: false), a migration `SeedInitialData` popula automaticamente a base de dados com:
+- 3 sanduíches (X Burger, X Bacon, X Egg)
+- 2 acompanhamentos (Batata Frita, Coca-Cola)
+- 2 clientes de exemplo
 
 ### Testar com Postman
 
 Importar o ficheiro `GoodHamburger.postman_collection.json` (raiz do repositório) no Postman.  
 Contém **60 requests** distribuídos por 4 pastas (Customers, Menus, Side Dishes, Orders), cobrindo todos os cenários de sucesso, validação, not found e regras de negócio.
+
+---
+
+## CI/CD
+
+O projeto usa **GitHub Actions** para integração contínua.
+
+**Ficheiro:** `.github/workflows/dotnet-desktop.yml`
+
+### Pipeline
+
+```
+push/PR → main ou develop
+    │
+    ├─→ build-and-test (ubuntu-latest)
+    │     ├── Setup .NET 7.0.x
+    │     ├── dotnet restore
+    │     ├── dotnet build --configuration Release
+    │     ├── dotnet test (trx logger, upload artefactos)
+    │     └── Upload test results (.trx)
+    │
+    └─→ docker (needs: build-and-test)
+          ├── docker build Dockerfile.api
+          └── docker build Dockerfile.web
+```
+
+O job `docker` valida que ambas as imagens compilam com sucesso, mas não faz push para nenhum registry.
 
 ---
 
@@ -465,11 +561,9 @@ Estas funcionalidades foram conscientemente deixadas de fora do âmbito atual do
 | Funcionalidade | Motivo |
 |---------------|--------|
 | **Autenticação / Autorização** | Fora do âmbito da fase atual. A estrutura de middleware está preparada para adicionar JWT sem alterar use cases. |
-| **Frontend Blazor** | Template inicial criado mas não integrado com a API. Interface planeada para fase posterior. |
 | **Testes de Integração** | Apenas testes unitários existem. Testes de integração contra InMemory DB são o próximo passo natural. |
 | **PAID / READY / DELIVERED** | Os estados do ciclo de vida do pedido existem no enum e no domínio, mas não há use cases específicos para eles (ex: `MarkAsReadyUseCase`). |
 | **Paginação por filtro** | As listagens paginadas não suportam filtros ou ordenação — retornam todos os registos paginados. |
 | **Soft Delete** | A infraestrutura tem suporte parcial (`IgnoreQueryFilters`) mas não está activado. Eliminação é física. |
 | **Rate Limiting** | Não implementado. Pode ser adicionado via middleware do ASP.NET Core sem impacto na arquitetura. |
-| **Health Checks** | Não implementados. |
-| **CI/CD** | Sem pipeline configurado. Os testes podem ser integrados facilmente em GitHub Actions ou Azure DevOps. |
+| **Health Checks (API)** | A API não expõe `/health`. O Docker Compose faz health check diretamente no SQL Server. |
