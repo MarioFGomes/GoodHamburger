@@ -47,7 +47,7 @@ public class CreateOrderUseCase : ICreateOrderUseCase {
             sideDishes.Add(sideDish);
         }
 
-        var orderNumber = await _orderRepo.CountAsync(ct) + 1;
+        var orderNumber = await _orderRepo.NextOrderNumberAsync(ct);
         var order = new Domain.Entities.Order(request.CustomerId, orderNumber);
 
         order.AddSandwich(menu.Id, menu.Price!.Value);

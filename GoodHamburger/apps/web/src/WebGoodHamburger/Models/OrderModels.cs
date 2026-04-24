@@ -7,6 +7,7 @@ public class OrderResponse {
     public Guid Id { get; set; }
     public int OrderNumber { get; set; }
     public Guid CustomerId { get; set; }
+    public string CustomerName { get; set; } = string.Empty;
     public decimal Subtotal { get; set; }
     public decimal Discount { get; set; }
     public decimal Total { get; set; }
@@ -18,6 +19,7 @@ public class OrderResponse {
 public class OrderItemResponse {
     public Guid Id { get; set; }
     public Guid MenuId { get; set; }
+    public string MenuName { get; set; } = string.Empty;
     public int Qtd { get; set; }
     public decimal UnitPrice { get; set; }
     public List<OrderSideDishResponse> SideDishes { get; set; } = new();
@@ -25,6 +27,7 @@ public class OrderItemResponse {
 
 public class OrderSideDishResponse {
     public Guid SideDishId { get; set; }
+    public string Name { get; set; } = string.Empty;
     public SideDishCategory Category { get; set; }
     public int Qtd { get; set; }
     public decimal UnitPrice { get; set; }

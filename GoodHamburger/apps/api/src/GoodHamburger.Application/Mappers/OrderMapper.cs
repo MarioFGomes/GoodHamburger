@@ -9,6 +9,9 @@ public static class OrderMapper {
             Id = order.Id,
             OrderNumber = order.OrderNumber,
             CustomerId = order.CustomerID,
+            CustomerName = order.Customer is not null
+                ? $"{order.Customer.FirstName} {order.Customer.LastName}"
+                : string.Empty,
             Subtotal = order.Subtotal,
             Discount = order.Discount,
             Total = order.Total,
@@ -22,6 +25,7 @@ public static class OrderMapper {
         return new OrderItemResponse {
             Id = item.Id,
             MenuId = item.MenuId,
+            MenuName = item.Menu?.Name ?? string.Empty,
             Qtd = item.Qtd,
             UnitPrice = item.UnitPrice,
             SideDishes = item.OrderSideDishes.Select(s => s.ToResponse()).ToList(),
@@ -31,6 +35,7 @@ public static class OrderMapper {
     private static OrderSideDishResponse ToResponse(this OrderSideDishes sideDish) {
         return new OrderSideDishResponse {
             SideDishId = sideDish.SideDishesId,
+            Name = sideDish.SideDishes?.Name ?? string.Empty,
             Category = sideDish.Category,
             Qtd = sideDish.Qtd,
             UnitPrice = sideDish.UnitPrice,

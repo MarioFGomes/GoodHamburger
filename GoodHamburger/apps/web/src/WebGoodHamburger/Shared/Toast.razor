@@ -1,0 +1,31 @@
+@if (_message is not null) {
+    <div class="fixed top-5 right-5 z-50 flex items-start gap-3 bg-zinc-900 text-white px-4 py-3 rounded-xl shadow-2xl max-w-sm w-full border border-zinc-700">
+        <span class="material-symbols-outlined text-red-400 mt-0.5 shrink-0" style="font-size:18px">error</span>
+        <p class="text-sm flex-1 leading-snug">@_message</p>
+        <button @onclick="Dismiss" class="text-zinc-400 hover:text-white transition-colors shrink-0 -mt-0.5">
+            <span class="material-symbols-outlined" style="font-size:18px">close</span>
+        </button>
+    </div>
+}
+
+@code {
+    private string? _message;
+    private CancellationTokenSource? _cts;
+
+    public async Task ShowAsync(string message) {
+        _cts?.Cancel();
+        _cts = new CancellationTokenSource();
+        _message = message;
+        StateHasChanged();
+        try {
+            await Task.Delay(5000, _cts.Token);
+            _message = null;
+            StateHasChanged();
+        } catch (TaskCanceledException) { }
+    }
+
+    private void Dismiss() {
+        _cts?.Cancel();
+        _message = null;
+    }
+}

@@ -1,0 +1,72 @@
+name: GoodHamburger CI
+
+on:
+  push:
+    branches: [ "main", "develop" ]
+  pull_request:
+    branches: [ "main", "develop" ]
+
+jobs:
+
+  # ─── Build & Test ────────────────────────────────────────────────────────────
+  build-and-test:
+    name: Build & Test (.NET 7)
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup .NET 7
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 7.0.x
+
+      - name: Restore dependencies
+        run: dotnet restore GoodHamburger/GoodHamburger.sln
+
+      - name: Build
+        run: |
+          dotnet build GoodHamburger/GoodHamburger.sln \
+            --configuration Release \
+            --no-restore
+
+      - name: Run tests
+        run: |
+          dotnet test GoodHamburger/GoodHamburger.sln \
+            --configuration Release \
+            --no-build \
+            --verbosity normal \
+            --logger "trx;LogFileName=test-results.trx" \
+            --results-directory ./test-results
+
+      - name: Upload test results
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: test-results
+          path: ./test-results/*.trx
+
+  # ─── Docker Build Validation ─────────────────────────────────────────────────
+  docker:
+    name: Docker Build Validation
+    runs-on: ubuntu-latest
+    needs: build-and-test
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Build API image
+        run: |
+          docker build \
+            -f GoodHamburger/Dockerfile.api \
+            -t goodhamburger-api:ci \
+            GoodHamburger/
+
+      - name: Build Web image
+        run: |
+          docker build \
+            -f GoodHamburger/Dockerfile.web \
+            -t goodhamburger-web:ci \
+            GoodHamburger/
