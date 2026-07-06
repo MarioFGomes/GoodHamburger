@@ -2,6 +2,7 @@ using Asp.Versioning.ApiExplorer;
 using GoodHamburger.API.Middleware;
 using GoodHamburger.Application;
 using GoodHamburger.Infrastructure;
+using GoodHamburger.Infrastructure.DataAccess;
 
 namespace GoodHamburger.API {
     public class Program {
@@ -16,8 +17,10 @@ namespace GoodHamburger.API {
 
             // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
             builder.Services.AddEndpointsApiExplorer();
-            builder.Services.AddApiLayer();
+            builder.Services.AddApiLayer(builder.Configuration);
             builder.Services.AddSwaggerConfiguration();
+            builder.Services.AddHealthChecks()
+                   .AddDbContextCheck<GoodHamburgerContext>("database");
 
             var app = builder.Build();
 
@@ -41,11 +44,13 @@ namespace GoodHamburger.API {
 
             app.UseHttpsRedirection();
 
-            app.UseAuthorization();
-
             app.UseCors(ApiBootstrapper.CorsPolicyName);
 
+            app.UseAuthorization();
+
             app.MapControllers();
+
+            app.MapHealthChecks("/health");
 
             app.Run();
         }

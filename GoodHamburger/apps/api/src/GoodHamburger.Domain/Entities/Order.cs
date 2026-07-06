@@ -74,6 +74,7 @@ public class Order : EntityBase {
         if (!_OrderItems.Any()) throw new DomainException("Não é possível confirmar um pedido vazio.");
 
         Status = OrderStatus.CONFIRMED;
+        UpdatedAt = DateTime.UtcNow;
     }
 
 

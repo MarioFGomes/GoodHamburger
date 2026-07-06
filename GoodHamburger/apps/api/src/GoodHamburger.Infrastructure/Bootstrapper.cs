@@ -1,6 +1,6 @@
 ﻿using GoodHamburger.Domain.Repositories;
-using GoodHamburger.Infrastructure.DataAcess;
-using GoodHamburger.Infrastructure.DataAcess.Repositories;
+using GoodHamburger.Infrastructure.DataAccess;
+using GoodHamburger.Infrastructure.DataAccess.Repositories;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -45,11 +45,11 @@ public static class Bootstrapper {
             return;
         }
 
-        var conectionString = configurationManager.GetConnectionString("SQLServer")
+        var connectionString = configurationManager.GetConnectionString("SQLServer")
             ?? throw new InvalidOperationException("Connection string 'SQLServer' não encontrada.");
 
         services.AddDbContext<GoodHamburgerContext>(dbContextOptions => {
-            dbContextOptions.UseSqlServer(conectionString);
+            dbContextOptions.UseSqlServer(connectionString);
         });
 
             

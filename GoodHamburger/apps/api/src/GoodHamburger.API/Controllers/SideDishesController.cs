@@ -1,3 +1,4 @@
+using Asp.Versioning;
 using GoodHamburger.Application.DTOs.Requests;
 using GoodHamburger.Application.DTOs.Responses;
 using GoodHamburger.Application.UseCases.SideDishes;
@@ -7,7 +8,7 @@ namespace GoodHamburger.API.Controllers;
 
 [ApiVersion("1.0")]
 [Route("api/v{version:apiVersion}/side-dishes")]
-public class SideDishesController : ControllerEntinty {
+public class SideDishesController : EntityController {
 
     private readonly ICreateSideDishesUseCase _create;
     private readonly IGetSideDishByIdUseCase _getById;

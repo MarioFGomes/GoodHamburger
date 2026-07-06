@@ -14,7 +14,8 @@ public class DeleteCustomerUseCaseTest {
     public async Task Success() {
         var customer = CustomerBuilder.Create();
         var repo = CustomerRepositoryBuilder.Instance().WithCustomer(customer).Build();
-        var useCase = new DeleteCustomerUseCase(repo, UnitOfWorkBuilder.Instance().Build(), NullLogger<DeleteCustomerUseCase>.Instance);
+        var orderRepo = OrderRepositoryBuilder.Instance().WithAnyMatch(false).Build();
+        var useCase = new DeleteCustomerUseCase(repo, orderRepo, UnitOfWorkBuilder.Instance().Build(), NullLogger<DeleteCustomerUseCase>.Instance);
         var act = () => useCase.ExecuteAsync(customer.Id);
         await act.Should().NotThrowAsync();
     }
@@ -26,9 +27,20 @@ public class DeleteCustomerUseCaseTest {
     [Fact]
     public async Task CustomerNotFound() {
         var repo = CustomerRepositoryBuilder.Instance().WithCustomer(null).Build();
-        var useCase = new DeleteCustomerUseCase(repo, UnitOfWorkBuilder.Instance().Build(), NullLogger<DeleteCustomerUseCase>.Instance);
+        var orderRepo = OrderRepositoryBuilder.Instance().WithAnyMatch(false).Build();
+        var useCase = new DeleteCustomerUseCase(repo, orderRepo, UnitOfWorkBuilder.Instance().Build(), NullLogger<DeleteCustomerUseCase>.Instance);
         var act = () => useCase.ExecuteAsync(Guid.NewGuid());
         await act.Should().ThrowAsync<NotFoundException>();
+    }
+
+    [Fact]
+    public async Task CustomerWithOrdersCannotBeDeleted() {
+        var customer = CustomerBuilder.Create();
+        var repo = CustomerRepositoryBuilder.Instance().WithCustomer(customer).Build();
+        var orderRepo = OrderRepositoryBuilder.Instance().WithAnyMatch(true).Build();
+        var useCase = new DeleteCustomerUseCase(repo, orderRepo, UnitOfWorkBuilder.Instance().Build(), NullLogger<DeleteCustomerUseCase>.Instance);
+        var act = () => useCase.ExecuteAsync(customer.Id);
+        await act.Should().ThrowAsync<BusinessRuleException>();
     }
 
     #endregion

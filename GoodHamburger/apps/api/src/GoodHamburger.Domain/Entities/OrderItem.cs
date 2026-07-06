@@ -23,9 +23,8 @@ public class OrderItem: EntityBase {
     public OrderItem(Guid menuId, decimal unitPrice) {
         if (unitPrice < 0) throw new DomainException("Preço não pode ser negativo.");
         MenuId = menuId;
-        Qtd = 1;                      
+        Qtd = 1;
         UnitPrice = unitPrice;
-        Id = Guid.NewGuid();
     }
 
     public void AddSideDish(Guid sideDishesId, SideDishCategory category, decimal unitPrice) {

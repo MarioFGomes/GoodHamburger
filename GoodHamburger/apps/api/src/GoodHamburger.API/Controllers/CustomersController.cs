@@ -1,3 +1,4 @@
+using Asp.Versioning;
 ﻿using GoodHamburger.Application.DTOs.Requests;
 using GoodHamburger.Application.DTOs.Responses;
 using GoodHamburger.Application.UseCases.Customer;
@@ -7,7 +8,7 @@ namespace GoodHamburger.API.Controllers;
 
 [ApiVersion("1.0")]
 [Route("api/v{version:apiVersion}/customers")]
-public class CustomersController : ControllerEntinty {
+public class CustomersController : EntityController {
 
     private readonly ICreateCustomerUseCase _createCustomer;
     private readonly IGetCustomerByIdUseCase _getById;

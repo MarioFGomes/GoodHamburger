@@ -15,7 +15,7 @@ public class CustomerBuilder {
         
         return  new Faker<Customer>("pt_BR")
               .CustomInstantiator(f => new Customer(
-                firtsname: f.Person.FirstName,
+                firstName: f.Person.FirstName,
                 lastName: f.Person.LastName,
                 email: f.Internet.Email(),
                 phone: f.Phone.PhoneNumber("###########"),
@@ -27,7 +27,7 @@ public class CustomerBuilder {
     public static List<Customer> CreateMany(int count) {
         return new Faker<Customer>()
             .CustomInstantiator(f => new Customer(
-                firtsname: f.Person.FirstName,
+                firstName: f.Person.FirstName,
                 lastName: f.Person.LastName,
                 email: f.Internet.Email(),
                 phone: f.Phone.PhoneNumber("###########"),

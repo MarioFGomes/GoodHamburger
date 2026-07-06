@@ -3,12 +3,12 @@ using System.Text.Json.Serialization;
 using System.Text.Json;
 using Asp.Versioning;
 
-namespace GoodHamburger.API; 
+namespace GoodHamburger.API;
 public static class ApiBootstrapper {
 
     public const string CorsPolicyName = "AllowFrontend";
 
-    public static IServiceCollection AddApiLayer(this IServiceCollection services) {
+    public static IServiceCollection AddApiLayer(this IServiceCollection services, IConfiguration configuration) {
 
         services.AddControllers(options => {
             options.Filters.Add<ValidationFilter>();
@@ -24,10 +24,6 @@ public static class ApiBootstrapper {
 
         services.AddProblemDetails();
 
-        services.AddEndpointsApiExplorer();
-        services.AddSwaggerConfiguration();
-
-
         services.AddApiVersioning(options => {
             options.DefaultApiVersion = new ApiVersion(1, 0);
             options.AssumeDefaultVersionWhenUnspecified = true;
@@ -39,13 +35,12 @@ public static class ApiBootstrapper {
             options.SubstituteApiVersionInUrl = true;
         });
 
-        services.AddSwaggerConfiguration();
+        var allowedOrigins = configuration.GetSection("Cors:AllowedOrigins").Get<string[]>()
+            ?? new[] { "https://localhost:7162" };
 
         services.AddCors(options => {
             options.AddPolicy(CorsPolicyName, policy => {
-                policy.WithOrigins(
-                        "https://localhost:7162/",      
-                        "https://meuapp.com")         
+                policy.WithOrigins(allowedOrigins)
                       .AllowAnyMethod()
                       .AllowAnyHeader()
                       .AllowCredentials();

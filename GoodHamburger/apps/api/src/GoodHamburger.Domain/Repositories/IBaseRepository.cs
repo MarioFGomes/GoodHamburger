@@ -11,7 +11,6 @@ public interface IBaseRepository<TEntity> where TEntity : class {
     Task<TEntity?> GetOneAsync(Expression<Func<TEntity, bool>> filterExpression, CancellationToken cancellationToken);
     Task<IEnumerable<TEntity>> GetAllAsync(CancellationToken cancellationToken,int page = 1, int pageSize = 10);
     Task<IEnumerable<TEntity>> GetAllAsync(CancellationToken cancellationToken);
-    Task<TEntity?> GetOneIncludingInactiveAsync(Expression<Func<TEntity, bool>> filterExpression, CancellationToken cancellationToken);
     Task<int> CountAsync(CancellationToken cancellationToken);
     Task<int> CountAsync(Expression<Func<TEntity, bool>> filterExpression, CancellationToken cancellationToken);
     IQueryable<TEntity> GetQueryable();

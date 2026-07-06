@@ -1,8 +1,9 @@
-﻿using System.Text.Json;
+using System.Text.Json;
 using FluentValidation;
 using GoodHamburger.Application.Exceptions;
 using GoodHamburger.Domain.Exceptions;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 
 namespace GoodHamburger.API.Middleware;
 
@@ -34,10 +35,10 @@ public class GlobalExceptionHandler {
         if (context.Response.HasStarted) {
             _logger.LogError(exception,
                 "Response já iniciada — não foi possível escrever ProblemDetails.");
-            throw exception;
+            System.Runtime.ExceptionServices.ExceptionDispatchInfo.Capture(exception).Throw();
         }
 
-        var (status, title) = MapStatus(exception);
+        var (status, title, detail) = MapStatus(exception);
 
         if (status >= 500)
             _logger.LogError(exception, "Erro não tratado: {Message}", exception.Message);
@@ -49,14 +50,14 @@ public class GlobalExceptionHandler {
         var problem = new ProblemDetails {
             Status = status,
             Title = title,
-            Detail = status == StatusCodes.Status500InternalServerError && !_env.IsDevelopment()
+            Detail = detail ?? (status == StatusCodes.Status500InternalServerError && !_env.IsDevelopment()
                 ? "Ocorreu um erro interno. Contate o suporte."
-                : exception.Message,
+                : exception.Message),
             Type = $"https://httpstatuses.com/{status}",
             Instance = context.Request.Path
         };
 
-      
+
         if (exception is ValidationException ve) {
             problem.Extensions["errors"] = ve.Errors
                 .GroupBy(e => e.PropertyName)
@@ -75,14 +76,19 @@ public class GlobalExceptionHandler {
         await context.Response.WriteAsync(json);
     }
 
-    private static (int status, string title) MapStatus(Exception ex) => ex switch {
-        ValidationException =>                  (StatusCodes.Status400BadRequest, "Erro de validação."),
-        NotFoundException =>                    (StatusCodes.Status404NotFound, "Recurso não encontrado."),
-        ResourceAlreadyExists =>                (StatusCodes.Status409Conflict, "Recurso já existe."),
-        BusinessRuleException =>                (StatusCodes.Status422UnprocessableEntity, "Regra de negócio violada."),
-        DomainException =>                      (StatusCodes.Status422UnprocessableEntity, "Regra de domínio violada."),
-        UnauthorizedAccessException =>          (StatusCodes.Status401Unauthorized, "Acesso não autorizado."),
-       
-        _ => (StatusCodes.Status500InternalServerError, "Erro interno do servidor.")
+    private static (int status, string title, string? detail) MapStatus(Exception ex) => ex switch {
+        ValidationException =>                  (StatusCodes.Status400BadRequest, "Erro de validação.", null),
+        NotFoundException =>                    (StatusCodes.Status404NotFound, "Recurso não encontrado.", null),
+        ResourceAlreadyExists =>                (StatusCodes.Status409Conflict, "Recurso já existe.", null),
+        BusinessRuleException =>                (StatusCodes.Status422UnprocessableEntity, "Regra de negócio violada.", null),
+        DomainException =>                      (StatusCodes.Status422UnprocessableEntity, "Regra de domínio violada.", null),
+        UnauthorizedAccessException =>          (StatusCodes.Status401Unauthorized, "Acesso não autorizado.", null),
+
+        // Rede de segurança: violações de índice único/FK que escaparam às
+        // verificações dos use cases (ex.: dois inserts concorrentes com o mesmo telefone).
+        DbUpdateException =>                    (StatusCodes.Status409Conflict, "Conflito de dados.",
+                                                 "A operação viola uma restrição de integridade (registro duplicado ou em uso)."),
+
+        _ => (StatusCodes.Status500InternalServerError, "Erro interno do servidor.", null)
     };
 }

@@ -1,3 +1,4 @@
+using GoodHamburger.Domain.Entities;
 using GoodHamburger.Domain.Repositories;
 using Moq;
 
@@ -14,6 +15,12 @@ public class OrderItemRepositoryBuilder {
     public static OrderItemRepositoryBuilder Instance() {
         _instance = new OrderItemRepositoryBuilder();
         return _instance;
+    }
+
+    public OrderItemRepositoryBuilder WithAnyMatch(bool any) {
+        _repo.Setup(r => r.AnyAsync(It.IsAny<System.Linq.Expressions.Expression<Func<OrderItem, bool>>>(), It.IsAny<CancellationToken>()))
+             .ReturnsAsync(any);
+        return this;
     }
 
     public IOrderItemRepository Build() {

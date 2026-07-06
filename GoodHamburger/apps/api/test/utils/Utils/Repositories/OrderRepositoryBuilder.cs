@@ -35,6 +35,12 @@ public class OrderRepositoryBuilder {
         return this;
     }
 
+    public OrderRepositoryBuilder WithAnyMatch(bool any) {
+        _repo.Setup(r => r.AnyAsync(It.IsAny<System.Linq.Expressions.Expression<Func<Order, bool>>>(), It.IsAny<CancellationToken>()))
+             .ReturnsAsync(any);
+        return this;
+    }
+
     public IOrderRepository Build() {
         return _repo.Object;
     }

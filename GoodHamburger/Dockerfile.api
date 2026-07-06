@@ -24,6 +24,11 @@ RUN dotnet publish apps/api/src/GoodHamburger.API/GoodHamburger.API.csproj \
 FROM mcr.microsoft.com/dotnet/aspnet:7.0 AS final
 WORKDIR /app
 
+# curl is used by the container healthcheck (see docker-compose.yml)
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends curl \
+    && rm -rf /var/lib/apt/lists/*
+
 EXPOSE 8080
 ENV ASPNETCORE_URLS=http://+:8080
 

@@ -23,9 +23,9 @@ public class CreateCustomerValidatorTest {
     [Fact]
     public void ValidateFirstNameEmpty() {
         var validator = new CreateCustomerRequestValidator();
-        var request = CustomerBuilder.Create();
+        var request = CustomerBuilder.Create().ToRequest();
         request.FirstName = string.Empty;
-        var result = validator.Validate(request.ToRequest());
+        var result = validator.Validate(request);
         result.IsValid.Should().BeFalse();
     }
 

@@ -1,3 +1,4 @@
+using Asp.Versioning;
 using GoodHamburger.Application.DTOs.Requests;
 using GoodHamburger.Application.DTOs.Responses;
 using GoodHamburger.Application.UseCases.Menu;
@@ -7,7 +8,7 @@ namespace GoodHamburger.API.Controllers;
 
 [ApiVersion("1.0")]
 [Route("api/v{version:apiVersion}/menus")]
-public class MenusController : ControllerEntinty {
+public class MenusController : EntityController {
 
     private readonly ICreateMenuUseCase _create;
     private readonly IGetMenuByIdUseCase _getById;
