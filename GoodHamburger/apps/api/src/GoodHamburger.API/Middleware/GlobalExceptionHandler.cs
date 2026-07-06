@@ -1,8 +1,8 @@
 using System.Text.Json;
 using FluentValidation;
+using GoodHamburger.Application.DTOs.Responses;
 using GoodHamburger.Application.Exceptions;
 using GoodHamburger.Domain.Exceptions;
-using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
 namespace GoodHamburger.API.Middleware;
@@ -47,30 +47,22 @@ public class GlobalExceptionHandler {
                 "Falha tratada. Status={Status}, Type={ExceptionType}",
                 status, exception.GetType().Name);
 
-        var problem = new ProblemDetails {
-            Status = status,
-            Title = title,
-            Detail = detail ?? (status == StatusCodes.Status500InternalServerError && !_env.IsDevelopment()
-                ? "Ocorreu um erro interno. Contate o suporte."
-                : exception.Message),
-            Type = $"https://httpstatuses.com/{status}",
-            Instance = context.Request.Path
-        };
+        var message = detail ?? (status == StatusCodes.Status500InternalServerError && !_env.IsDevelopment()
+            ? "Ocorreu um erro interno. Contate o suporte."
+            : exception.Message);
 
+        var errors = exception is ValidationException ve
+            ? ve.Errors.Select(e => $"{e.PropertyName}: {e.ErrorMessage}").ToList()
+            : null;
 
-        if (exception is ValidationException ve) {
-            problem.Extensions["errors"] = ve.Errors
-                .GroupBy(e => e.PropertyName)
-                .ToDictionary(g => g.Key, g => g.Select(e => e.ErrorMessage).ToArray());
-        }
-
-        problem.Extensions["traceId"] = context.TraceIdentifier;
+        var apiResponse = ApiResponse<object>.Fail(message, status, errors);
 
         context.Response.StatusCode = status;
-        context.Response.ContentType = "application/problem+json";
+        context.Response.ContentType = "application/json";
 
-        var json = JsonSerializer.Serialize(problem, new JsonSerializerOptions {
-            PropertyNamingPolicy = JsonNamingPolicy.CamelCase
+        var json = JsonSerializer.Serialize(apiResponse, new JsonSerializerOptions {
+            PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
+            DefaultIgnoreCondition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull
         });
 
         await context.Response.WriteAsync(json);

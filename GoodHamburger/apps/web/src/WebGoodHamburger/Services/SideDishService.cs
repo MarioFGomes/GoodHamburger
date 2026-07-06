@@ -13,15 +13,15 @@ public class SideDishService {
 
     public async Task<ApiResult<PagedResponse<SideDishesResponse>>> GetAllAsync(int page = 1, int pageSize = 10) {
         try {
-            var result = await _http.GetFromJsonAsync<PagedResponse<SideDishesResponse>>($"api/v1/side-dishes?page={page}&pageSize={pageSize}", _json);
-            return ApiResult<PagedResponse<SideDishesResponse>>.Success(result!);
+            var result = await _http.GetFromJsonAsync<ApiResponse<PagedResponse<SideDishesResponse>>>($"api/v1/side-dishes?page={page}&pageSize={pageSize}", _json);
+            return ApiResult<PagedResponse<SideDishesResponse>>.Success(result!.Data!);
         } catch (Exception ex) { return ApiResult<PagedResponse<SideDishesResponse>>.Failure(ex.Message); }
     }
 
     public async Task<ApiResult<SideDishesResponse>> GetByIdAsync(Guid id) {
         try {
-            var result = await _http.GetFromJsonAsync<SideDishesResponse>($"api/v1/side-dishes/{id}", _json);
-            return ApiResult<SideDishesResponse>.Success(result!);
+            var result = await _http.GetFromJsonAsync<ApiResponse<SideDishesResponse>>($"api/v1/side-dishes/{id}", _json);
+            return ApiResult<SideDishesResponse>.Success(result!.Data!);
         } catch (Exception ex) { return ApiResult<SideDishesResponse>.Failure(ex.Message); }
     }
 
@@ -30,7 +30,8 @@ public class SideDishService {
             var response = await _http.PostAsJsonAsync("api/v1/side-dishes", request, _json);
             if (!response.IsSuccessStatusCode)
                 return ApiResult<SideDishesResponse>.Failure(ApiErrorParser.Extract(await response.Content.ReadAsStringAsync()));
-            return ApiResult<SideDishesResponse>.Success((await response.Content.ReadFromJsonAsync<SideDishesResponse>(_json))!);
+            var envelope = await response.Content.ReadFromJsonAsync<ApiResponse<SideDishesResponse>>(_json);
+            return ApiResult<SideDishesResponse>.Success(envelope!.Data!);
         } catch (Exception ex) { return ApiResult<SideDishesResponse>.Failure(ex.Message); }
     }
 
@@ -39,7 +40,8 @@ public class SideDishService {
             var response = await _http.PutAsJsonAsync($"api/v1/side-dishes/{id}", request, _json);
             if (!response.IsSuccessStatusCode)
                 return ApiResult<SideDishesResponse>.Failure(ApiErrorParser.Extract(await response.Content.ReadAsStringAsync()));
-            return ApiResult<SideDishesResponse>.Success((await response.Content.ReadFromJsonAsync<SideDishesResponse>(_json))!);
+            var envelope = await response.Content.ReadFromJsonAsync<ApiResponse<SideDishesResponse>>(_json);
+            return ApiResult<SideDishesResponse>.Success(envelope!.Data!);
         } catch (Exception ex) { return ApiResult<SideDishesResponse>.Failure(ex.Message); }
     }
 

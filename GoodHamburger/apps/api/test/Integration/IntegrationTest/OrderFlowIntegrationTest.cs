@@ -31,7 +31,9 @@ public class OrderFlowIntegrationTest : IClassFixture<GoodHamburgerApiFactory> {
             Address = "Luanda"
         }, JsonOptions);
         response.StatusCode.Should().Be(HttpStatusCode.Created);
-        return (await response.Content.ReadFromJsonAsync<CustomerResponse>(JsonOptions))!;
+        var envelope = (await response.Content.ReadFromJsonAsync<ApiResponse<CustomerResponse>>(JsonOptions))!;
+        envelope.Success.Should().BeTrue();
+        return envelope.Data!;
     }
 
     private async Task<MenuResponse> CreateMenuAsync(decimal price = 5m) {
@@ -41,7 +43,9 @@ public class OrderFlowIntegrationTest : IClassFixture<GoodHamburgerApiFactory> {
             Price = price
         }, JsonOptions);
         response.StatusCode.Should().Be(HttpStatusCode.Created);
-        return (await response.Content.ReadFromJsonAsync<MenuResponse>(JsonOptions))!;
+        var envelope = (await response.Content.ReadFromJsonAsync<ApiResponse<MenuResponse>>(JsonOptions))!;
+        envelope.Success.Should().BeTrue();
+        return envelope.Data!;
     }
 
     private async Task<SideDishesResponse> CreateSideDishAsync(SideDishCategory category, decimal price) {
@@ -52,7 +56,9 @@ public class OrderFlowIntegrationTest : IClassFixture<GoodHamburgerApiFactory> {
             Category = category
         }, JsonOptions);
         response.StatusCode.Should().Be(HttpStatusCode.Created);
-        return (await response.Content.ReadFromJsonAsync<SideDishesResponse>(JsonOptions))!;
+        var envelope = (await response.Content.ReadFromJsonAsync<ApiResponse<SideDishesResponse>>(JsonOptions))!;
+        envelope.Success.Should().BeTrue();
+        return envelope.Data!;
     }
 
     [Fact]
@@ -75,7 +81,10 @@ public class OrderFlowIntegrationTest : IClassFixture<GoodHamburgerApiFactory> {
         }, JsonOptions);
 
         createResponse.StatusCode.Should().Be(HttpStatusCode.Created);
-        var order = (await createResponse.Content.ReadFromJsonAsync<OrderResponse>(JsonOptions))!;
+        var envelope = (await createResponse.Content.ReadFromJsonAsync<ApiResponse<OrderResponse>>(JsonOptions))!;
+        envelope.Success.Should().BeTrue();
+        envelope.StatusCode.Should().Be(201);
+        var order = envelope.Data!;
 
         order.Subtotal.Should().Be(9.5m);
         order.Discount.Should().Be(20m);
@@ -84,8 +93,9 @@ public class OrderFlowIntegrationTest : IClassFixture<GoodHamburgerApiFactory> {
 
         var confirmResponse = await _client.PutAsync($"/api/v1/orders/{order.Id}/confirm", null);
         confirmResponse.StatusCode.Should().Be(HttpStatusCode.OK);
-        var confirmed = (await confirmResponse.Content.ReadFromJsonAsync<OrderResponse>(JsonOptions))!;
-        confirmed.Status.Should().Be(OrderStatus.CONFIRMED);
+        var confirmed = (await confirmResponse.Content.ReadFromJsonAsync<ApiResponse<OrderResponse>>(JsonOptions))!;
+        confirmed.Success.Should().BeTrue();
+        confirmed.Data!.Status.Should().Be(OrderStatus.CONFIRMED);
     }
 
     [Fact]
@@ -97,12 +107,16 @@ public class OrderFlowIntegrationTest : IClassFixture<GoodHamburgerApiFactory> {
             CustomerId = customer.Id,
             MenuId = menu.Id
         }, JsonOptions);
-        var order = (await createResponse.Content.ReadFromJsonAsync<OrderResponse>(JsonOptions))!;
+        var order = (await createResponse.Content.ReadFromJsonAsync<ApiResponse<OrderResponse>>(JsonOptions))!.Data!;
 
         await _client.PutAsync($"/api/v1/orders/{order.Id}/confirm", null);
 
         var deleteResponse = await _client.DeleteAsync($"/api/v1/orders/{order.Id}");
         deleteResponse.StatusCode.Should().Be(HttpStatusCode.UnprocessableEntity);
+
+        var envelope = (await deleteResponse.Content.ReadFromJsonAsync<ApiResponse<object>>(JsonOptions))!;
+        envelope.Success.Should().BeFalse();
+        envelope.Message.Should().NotBeNullOrEmpty();
     }
 
     [Fact]
@@ -132,6 +146,10 @@ public class OrderFlowIntegrationTest : IClassFixture<GoodHamburgerApiFactory> {
         }, JsonOptions);
 
         duplicate.StatusCode.Should().Be(HttpStatusCode.Conflict);
+
+        var envelope = (await duplicate.Content.ReadFromJsonAsync<ApiResponse<object>>(JsonOptions))!;
+        envelope.Success.Should().BeFalse();
+        envelope.StatusCode.Should().Be(409);
     }
 
     [Fact]
@@ -175,6 +193,10 @@ public class OrderFlowIntegrationTest : IClassFixture<GoodHamburgerApiFactory> {
     public async Task GetMissingOrder_Returns404() {
         var response = await _client.GetAsync($"/api/v1/orders/{Guid.NewGuid()}");
         response.StatusCode.Should().Be(HttpStatusCode.NotFound);
+
+        var envelope = (await response.Content.ReadFromJsonAsync<ApiResponse<object>>(JsonOptions))!;
+        envelope.Success.Should().BeFalse();
+        envelope.StatusCode.Should().Be(404);
     }
 
     [Fact]
@@ -187,6 +209,10 @@ public class OrderFlowIntegrationTest : IClassFixture<GoodHamburgerApiFactory> {
         }, JsonOptions);
 
         response.StatusCode.Should().Be(HttpStatusCode.BadRequest);
+
+        var envelope = (await response.Content.ReadFromJsonAsync<ApiResponse<object>>(JsonOptions))!;
+        envelope.Success.Should().BeFalse();
+        envelope.Errors.Should().NotBeNullOrEmpty();
     }
 
     [Fact]
@@ -205,8 +231,20 @@ public class OrderFlowIntegrationTest : IClassFixture<GoodHamburgerApiFactory> {
         }, JsonOptions);
         update.StatusCode.Should().Be(HttpStatusCode.OK);
 
-        var updated = await (await _client.GetAsync($"/api/v1/customers/{customer.Id}"))
-            .Content.ReadFromJsonAsync<CustomerResponse>(JsonOptions);
+        var updated = (await (await _client.GetAsync($"/api/v1/customers/{customer.Id}"))
+            .Content.ReadFromJsonAsync<ApiResponse<CustomerResponse>>(JsonOptions))!.Data;
         updated!.FirstName.Should().Be("Maria Editada");
+    }
+
+    [Fact]
+    public async Task DeleteMenu_ReturnsEnvelopeWithMessage() {
+        var menu = await CreateMenuAsync();
+
+        var response = await _client.DeleteAsync($"/api/v1/menus/{menu.Id}");
+        response.StatusCode.Should().Be(HttpStatusCode.OK);
+
+        var envelope = (await response.Content.ReadFromJsonAsync<ApiResponse<object>>(JsonOptions))!;
+        envelope.Success.Should().BeTrue();
+        envelope.Message.Should().Be("Menu deleted.");
     }
 }

@@ -33,53 +33,54 @@ public class OrdersController : EntityController {
     }
 
     [HttpPost]
-    [ProducesResponseType(typeof(OrderResponse), StatusCodes.Status201Created)]
-    [ProducesResponseType(typeof(ValidationProblemDetails), StatusCodes.Status400BadRequest)]
-    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
+    [ProducesResponseType(typeof(ApiResponse<OrderResponse>), StatusCodes.Status201Created)]
+    [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status404NotFound)]
     public async Task<IActionResult> Create([FromBody] CreateOrderRequest request, CancellationToken ct) {
         var response = await _create.ExecuteAsync(request, ct);
-        return CreatedAtAction(nameof(GetById), new { id = response.Id }, response);
+        return CreatedAtAction(nameof(GetById), new { id = response.Id },
+            ApiResponse<OrderResponse>.Ok(response, "Order created.", StatusCodes.Status201Created));
     }
 
     [HttpGet("{id:guid}", Name = "Orders_GetById")]
-    [ProducesResponseType(typeof(OrderResponse), StatusCodes.Status200OK)]
-    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
+    [ProducesResponseType(typeof(ApiResponse<OrderResponse>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status404NotFound)]
     public async Task<IActionResult> GetById([FromRoute] Guid id, CancellationToken ct) {
         var response = await _getById.ExecuteAsync(id, ct);
-        return Ok(response);
+        return Ok(ApiResponse<OrderResponse>.Ok(response));
     }
 
     [HttpGet]
-    [ProducesResponseType(typeof(PagedResponse<OrderResponse>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ApiResponse<PagedResponse<OrderResponse>>), StatusCodes.Status200OK)]
     public async Task<IActionResult> GetAll([FromQuery] int page = 1, [FromQuery] int pageSize = 10, CancellationToken ct = default) {
         var response = await _getAll.ExecuteAsync(page, pageSize, ct);
-        return Ok(response);
+        return Ok(ApiResponse<PagedResponse<OrderResponse>>.Ok(response));
     }
 
     [HttpPut("{id:guid}/confirm")]
-    [ProducesResponseType(typeof(OrderResponse), StatusCodes.Status200OK)]
-    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
-    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status422UnprocessableEntity)]
+    [ProducesResponseType(typeof(ApiResponse<OrderResponse>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status404NotFound)]
+    [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status422UnprocessableEntity)]
     public async Task<IActionResult> Confirm([FromRoute] Guid id, CancellationToken ct) {
         var response = await _confirm.ExecuteAsync(id, ct);
-        return Ok(response);
+        return Ok(ApiResponse<OrderResponse>.Ok(response, "Order confirmed."));
     }
 
     [HttpPut("{id:guid}/cancel")]
-    [ProducesResponseType(typeof(OrderResponse), StatusCodes.Status200OK)]
-    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
-    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status422UnprocessableEntity)]
+    [ProducesResponseType(typeof(ApiResponse<OrderResponse>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status404NotFound)]
+    [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status422UnprocessableEntity)]
     public async Task<IActionResult> Cancel([FromRoute] Guid id, CancellationToken ct) {
         var response = await _cancel.ExecuteAsync(id, ct);
-        return Ok(response);
+        return Ok(ApiResponse<OrderResponse>.Ok(response, "Order cancelled."));
     }
 
     [HttpDelete("{id:guid}")]
-    [ProducesResponseType(StatusCodes.Status204NoContent)]
-    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
-    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status422UnprocessableEntity)]
+    [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status404NotFound)]
+    [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status422UnprocessableEntity)]
     public async Task<IActionResult> Delete([FromRoute] Guid id, CancellationToken ct) {
         await _delete.ExecuteAsync(id, ct);
-        return NoContent();
+        return Ok(ApiResponse<object>.Ok(null!, "Order deleted."));
     }
 }
