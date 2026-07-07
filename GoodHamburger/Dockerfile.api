@@ -1,5 +1,5 @@
 # ── Build stage ──────────────────────────────────────────────────────────────
-FROM mcr.microsoft.com/dotnet/sdk:7.0 AS build
+FROM mcr.microsoft.com/dotnet/sdk:10.0 AS build
 WORKDIR /src
 
 # Copy only .csproj files first — restores packages in a separate cached layer.
@@ -21,7 +21,7 @@ RUN dotnet publish apps/api/src/GoodHamburger.API/GoodHamburger.API.csproj \
     -c Release -o /app/publish --no-restore
 
 # ── Runtime stage ─────────────────────────────────────────────────────────────
-FROM mcr.microsoft.com/dotnet/aspnet:7.0 AS final
+FROM mcr.microsoft.com/dotnet/aspnet:10.0 AS final
 WORKDIR /app
 
 # curl is used by the container healthcheck (see docker-compose.yml)

@@ -26,9 +26,9 @@ public class DeleteMenuUseCase : IDeleteMenuUseCase {
         if (inUse)
             throw new BusinessRuleException("Menu is referenced by orders and cannot be deleted.");
 
-        await _menuRepo.DeleteAsync(m => m.Id == menu.Id, ct);
+        menu.MarkDeleted();
         await _unitOfWork.SaveChangesAsync(ct);
 
-        _logger.LogInformation("Menu deleted. Id={MenuId}", id);
+        _logger.LogInformation("Menu soft-deleted. Id={MenuId}", id);
     }
 }

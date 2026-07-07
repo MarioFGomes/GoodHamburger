@@ -14,7 +14,7 @@ public class GetAllMenusUseCase : IGetAllMenusUseCase {
         if (page < 1) page = 1;
         if (pageSize < 1 || pageSize > 100) pageSize = 10;
 
-        var menus = await _menuRepo.GetAllAsync(ct, page, pageSize);
+        var menus = await _menuRepo.GetAllAsync(page, pageSize, ct);
         var total = await _menuRepo.CountAsync(ct);
 
         return new PagedResponse<MenuResponse> {

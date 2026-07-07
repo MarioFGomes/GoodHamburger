@@ -14,7 +14,7 @@ public class GetAllSideDishesUseCase : IGetAllSideDishesUseCase {
         if (page < 1) page = 1;
         if (pageSize < 1 || pageSize > 100) pageSize = 10;
 
-        var sideDishes = await _sideDishRepo.GetAllAsync(ct, page, pageSize);
+        var sideDishes = await _sideDishRepo.GetAllAsync(page, pageSize, ct);
         var total = await _sideDishRepo.CountAsync(ct);
 
         return new PagedResponse<SideDishesResponse> {

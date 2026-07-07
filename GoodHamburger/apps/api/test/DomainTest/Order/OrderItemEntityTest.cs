@@ -12,7 +12,7 @@ public class OrderItemEntityTest {
 
         item.MenuId.Should().Be(menuId);
         item.UnitPrice.Should().Be(20.00m);
-        item.Qtd.Should().Be(1);
+        item.Quantity.Should().Be(1);
         item.Id.Should().NotBe(Guid.Empty);
     }
 
@@ -21,7 +21,7 @@ public class OrderItemEntityTest {
         var act = () => new OrderItem(Guid.NewGuid(), -0.01m);
 
         act.Should().Throw<DomainException>()
-           .WithMessage("*negativo*");
+           .WithMessage("*negative*");
     }
 
     [Fact]
@@ -90,7 +90,7 @@ public class OrderItemEntityTest {
         var act = () => item.AddSideDish(Guid.NewGuid(), SideDishCategory.FRIES, 5.00m);
 
         act.Should().Throw<DomainException>()
-           .WithMessage("*batata frita*");
+           .WithMessage("*fries*");
     }
 
     [Fact]
@@ -101,7 +101,7 @@ public class OrderItemEntityTest {
         var act = () => item.AddSideDish(Guid.NewGuid(), SideDishCategory.DRINK, 4.00m);
 
         act.Should().Throw<DomainException>()
-           .WithMessage("*refrigerante*");
+           .WithMessage("*drink*");
     }
 
     #endregion

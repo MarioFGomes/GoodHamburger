@@ -1,11 +1,11 @@
-﻿using GoodHamburger.Domain.Entities;
+using GoodHamburger.Domain.Entities;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using Microsoft.EntityFrameworkCore;
 
 namespace GoodHamburger.Infrastructure.DataAccess.Configurations;
 public class OrderItemConfiguration : IEntityTypeConfiguration<OrderItem> {
     public void Configure(EntityTypeBuilder<OrderItem> builder) {
-       
+
         builder.ToTable("OrderItems");
 
         builder.HasKey(i => i.Id);
@@ -13,7 +13,7 @@ public class OrderItemConfiguration : IEntityTypeConfiguration<OrderItem> {
         builder.Property(i => i.OrderId).IsRequired();
         builder.Property(i => i.MenuId).IsRequired();
 
-        builder.Property(i => i.Qtd).IsRequired();
+        builder.Property(i => i.Quantity).IsRequired();
 
         builder.Property(i => i.UnitPrice)
                .HasColumnType("decimal(18,2)")
@@ -25,10 +25,9 @@ public class OrderItemConfiguration : IEntityTypeConfiguration<OrderItem> {
                .OnDelete(DeleteBehavior.Cascade);
 
         builder.HasOne(o => o.Menu)
-                  .WithMany()
-                  .HasForeignKey(o => o.MenuId)
-                  .OnDelete(DeleteBehavior.Restrict);
-
+               .WithMany()
+               .HasForeignKey(o => o.MenuId)
+               .OnDelete(DeleteBehavior.Restrict);
 
         builder.Metadata
                .FindNavigation(nameof(OrderItem.OrderSideDishes))!

@@ -9,7 +9,7 @@ public class OrderResponse {
     public Guid CustomerId { get; set; }
     public string CustomerName { get; set; } = string.Empty;
     public decimal Subtotal { get; set; }
-    public decimal Discount { get; set; }
+    public decimal DiscountPercentage { get; set; }
     public decimal Total { get; set; }
     public OrderStatus Status { get; set; }
     public DateTime CreatedAt { get; set; }
@@ -20,7 +20,7 @@ public class OrderItemResponse {
     public Guid Id { get; set; }
     public Guid MenuId { get; set; }
     public string MenuName { get; set; } = string.Empty;
-    public int Qtd { get; set; }
+    public int Quantity { get; set; }
     public decimal UnitPrice { get; set; }
     public List<OrderSideDishResponse> SideDishes { get; set; } = new();
 }
@@ -29,7 +29,7 @@ public class OrderSideDishResponse {
     public Guid SideDishId { get; set; }
     public string Name { get; set; } = string.Empty;
     public SideDishCategory Category { get; set; }
-    public int Qtd { get; set; }
+    public int Quantity { get; set; }
     public decimal UnitPrice { get; set; }
 }
 

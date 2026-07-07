@@ -13,7 +13,7 @@ public static class OrderMapper {
                 ? $"{order.Customer.FirstName} {order.Customer.LastName}"
                 : string.Empty,
             Subtotal = order.Subtotal,
-            Discount = order.Discount,
+            DiscountPercentage = order.DiscountPercentage,
             Total = order.Total,
             Status = order.Status,
             CreatedAt = order.CreatedAt,
@@ -26,7 +26,7 @@ public static class OrderMapper {
             Id = item.Id,
             MenuId = item.MenuId,
             MenuName = item.Menu?.Name ?? string.Empty,
-            Qtd = item.Qtd,
+            Quantity = item.Quantity,
             UnitPrice = item.UnitPrice,
             SideDishes = item.OrderSideDishes.Select(s => s.ToResponse()).ToList(),
         };
@@ -37,7 +37,7 @@ public static class OrderMapper {
             SideDishId = sideDish.SideDishesId,
             Name = sideDish.SideDishes?.Name ?? string.Empty,
             Category = sideDish.Category,
-            Qtd = sideDish.Qtd,
+            Quantity = sideDish.Quantity,
             UnitPrice = sideDish.UnitPrice,
         };
     }

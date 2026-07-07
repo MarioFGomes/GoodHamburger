@@ -39,6 +39,10 @@ services:
       ASPNETCORE_ENVIRONMENT: Development
       ConnectionStrings__SQLServer: "Server=sqlserver;Database=GoodHamburger;User Id=sa;Password=GoodHamburger@2024;TrustServerCertificate=True;"
       Configurations__InMemoryDataBase: "false"
+      # Dev-only values; override with real secrets outside local compose.
+      Jwt__Key: "dev-only-signing-key-change-me-0123456789abcdef"
+      Auth__AdminUser__Email: "admin@goodhamburger.local"
+      Auth__AdminUser__Password: "Admin@12345"
     depends_on:
       sqlserver:
         condition: service_healthy
@@ -62,6 +66,8 @@ services:
     environment:
       ASPNETCORE_ENVIRONMENT: Development
       ApiSettings__BaseUrl: "http://api:8080"
+      ApiSettings__Email: "admin@goodhamburger.local"
+      ApiSettings__Password: "Admin@12345"
     depends_on:
       api:
         condition: service_healthy

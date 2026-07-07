@@ -2,7 +2,6 @@ using GoodHamburger.Application.DTOs.Requests;
 using GoodHamburger.Application.DTOs.Responses;
 using GoodHamburger.Application.Exceptions;
 using GoodHamburger.Application.Mappers;
-using GoodHamburger.Domain.Entities;
 using GoodHamburger.Domain.Enum;
 using GoodHamburger.Domain.Repositories;
 using Microsoft.Extensions.Logging;
@@ -32,7 +31,19 @@ public class CreateOrderUseCase : ICreateOrderUseCase {
         _logger = logger;
     }
 
-    public async Task<OrderResponse> ExecuteAsync(CreateOrderRequest request, CancellationToken ct = default) {
+    public async Task<OrderResponse> ExecuteAsync(CreateOrderRequest request, string? idempotencyKey = null, CancellationToken ct = default) {
+
+        // Idempotency: a retry with the same key returns the already-created
+        // order instead of charging the customer twice. A concurrent duplicate
+        // that slips past this check hits the unique index and becomes a 409.
+        if (!string.IsNullOrWhiteSpace(idempotencyKey)) {
+            var existing = await _orderRepo.GetByIdempotencyKeyAsync(idempotencyKey, ct);
+            if (existing is not null) {
+                _logger.LogInformation(
+                    "Order creation replayed via idempotency key. OrderId={OrderId}", existing.Id);
+                return existing.ToResponse();
+            }
+        }
 
         var customerExists = await _customerRepo.AnyAsync(c => c.Id == request.CustomerId, ct);
         if (!customerExists)
@@ -41,28 +52,24 @@ public class CreateOrderUseCase : ICreateOrderUseCase {
         var menu = await _menuRepo.GetOneAsync(m => m.Id == request.MenuId, ct)
             ?? throw new NotFoundException("Menu", request.MenuId);
 
-        if (menu.Status != MenuStatus.Available)
+        if (!menu.IsAvailable)
             throw new BusinessRuleException($"Menu '{menu.Name}' is not available.");
-        if (menu.Price is not decimal menuPrice)
-            throw new BusinessRuleException($"Menu '{menu.Name}' has no price defined.");
 
         var sideDishes = new List<(Guid Id, SideDishCategory Category, decimal Price)>();
-        foreach (var sideDishId in request.SideDishIds) {
+        foreach (var sideDishId in request.SideDishIds ?? new List<Guid>()) {
             var sideDish = await _sideDishRepo.GetOneAsync(s => s.Id == sideDishId, ct)
                 ?? throw new NotFoundException("SideDish", sideDishId);
 
-            if (sideDish.Status != MenuStatus.Available)
+            if (!sideDish.IsAvailable)
                 throw new BusinessRuleException($"Side dish '{sideDish.Name}' is not available.");
-            if (sideDish.Price is not decimal sideDishPrice)
-                throw new BusinessRuleException($"Side dish '{sideDish.Name}' has no price defined.");
 
-            sideDishes.Add((sideDish.Id, sideDish.Category, sideDishPrice));
+            sideDishes.Add((sideDish.Id, sideDish.Category, sideDish.Price.Amount));
         }
 
         var orderNumber = await _orderRepo.NextOrderNumberAsync(ct);
-        var order = new Domain.Entities.Order(request.CustomerId, orderNumber);
+        var order = new Domain.Entities.Order(request.CustomerId, orderNumber, idempotencyKey);
 
-        order.AddSandwich(menu.Id, menuPrice);
+        order.AddSandwich(menu.Id, menu.Price.Amount);
 
         foreach (var sideDish in sideDishes)
             order.AddSideDish(sideDish.Id, sideDish.Category, sideDish.Price);

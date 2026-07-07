@@ -20,6 +20,8 @@ public class OrderRepositoryBuilder {
     public OrderRepositoryBuilder WithOrder(Order? order) {
         _repo.Setup(r => r.GetWithItemsAsync(It.IsAny<Guid>(), It.IsAny<CancellationToken>()))
              .ReturnsAsync(order);
+        _repo.Setup(r => r.GetOneAsync(It.IsAny<System.Linq.Expressions.Expression<Func<Order, bool>>>(), It.IsAny<CancellationToken>()))
+             .ReturnsAsync(order);
         return this;
     }
 

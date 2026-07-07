@@ -36,8 +36,8 @@
             <MudChip Size="Size.Small" Color="@GetStatusColor(context.Status)">@context.Status</MudChip>
         </MudTd>
         <MudTd DataLabel="Discount">
-            @if (context.Discount > 0) {
-                <MudText Color="Color.Success" Style="font-weight:600;">-@context.Discount%</MudText>
+            @if (context.DiscountPercentage > 0) {
+                <MudText Color="Color.Success" Style="font-weight:600;">-@context.DiscountPercentage%</MudText>
             } else {
                 <MudText Color="Color.Secondary">—</MudText>
             }

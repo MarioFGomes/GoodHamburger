@@ -1,30 +1,43 @@
 using GoodHamburger.Domain.Enum;
 using GoodHamburger.Domain.Exceptions;
+using GoodHamburger.Domain.ValueObjects;
 
 namespace GoodHamburger.Domain.Entities;
-public class Menu: EntityBase {
+public class Menu : EntityBase {
 
-    private string? _name;
-    private decimal? _price;
+    public string Name { get; private set; } = string.Empty;
+    public string? Description { get; private set; }
+    public Money Price { get; private set; } = null!;
+    public MenuStatus Status { get; private set; } = MenuStatus.Available;
 
-    public string? Name {
-        get => _name;
-        set {
-            if (value is not null && string.IsNullOrWhiteSpace(value))
-                throw new DomainException("Name não pode ser vazio.");
-            _name = value;
-        }
+    protected Menu() { }
+
+    public Menu(string? name, string? description, Money price) {
+        Rename(name);
+        Description = description;
+        ChangePrice(price);
     }
-    public string? Description { get; set; }
-    public decimal? Price {
-        get => _price;
-        set {
-            if (value < 0)
-                throw new DomainException("Preço não pode ser negativo.");
-            _price = value;
-        }
-    }
-    public Currency Currency { get; set; } = Currency.BRL;
-    public MenuStatus Status { get; set; } = MenuStatus.Available;
 
+    public void Update(string? name, string? description, Money price, MenuStatus status) {
+        Rename(name);
+        Description = description;
+        ChangePrice(price);
+        Status = status;
+        Touch();
+    }
+
+    public void Rename(string? name) {
+        if (string.IsNullOrWhiteSpace(name))
+            throw new DomainException("Name is required.");
+        Name = name.Trim();
+    }
+
+    public void ChangePrice(Money price) {
+        Price = price ?? throw new DomainException("Price is required.");
+    }
+
+    public void MakeAvailable() { Status = MenuStatus.Available; Touch(); }
+    public void MakeUnavailable() { Status = MenuStatus.Unavailable; Touch(); }
+
+    public bool IsAvailable => Status == MenuStatus.Available;
 }

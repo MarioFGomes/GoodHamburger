@@ -1,8 +1,9 @@
-﻿using GoodHamburger.Application.DTOs.Requests;
+using GoodHamburger.Application.DTOs.Requests;
 using GoodHamburger.Application.DTOs.Responses;
 using GoodHamburger.Application.Exceptions;
 using GoodHamburger.Application.Mappers;
 using GoodHamburger.Domain.Repositories;
+using GoodHamburger.Domain.ValueObjects;
 using Microsoft.Extensions.Logging;
 
 namespace GoodHamburger.Application.UseCases.Customer;
@@ -13,8 +14,7 @@ public class UpdateCustomerUseCase : IUpdateCustomerUseCase {
     private readonly ILogger<UpdateCustomerUseCase> _logger;
 
     public UpdateCustomerUseCase(ICustomerRepository customerRepo, IUnitOfWork unitOfWork,
-        ILogger<UpdateCustomerUseCase> logger)
-    {
+        ILogger<UpdateCustomerUseCase> logger) {
         _customerRepo = customerRepo;
         _unitOfWork = unitOfWork;
         _logger = logger;
@@ -22,27 +22,27 @@ public class UpdateCustomerUseCase : IUpdateCustomerUseCase {
 
     public async Task<CustomerResponse> ExecuteAsync(UpdateCustomerRequest request, CancellationToken ct = default) {
 
-        var customer = await _customerRepo.GetOneAsync(i=>i.Id==request.Id, ct)
+        var customer = await _customerRepo.GetOneAsync(c => c.Id == request.Id, ct)
             ?? throw new NotFoundException("Customer", request.Id);
 
-      
-        if (customer.Phone != request.Phone) {
+        var phone = Phone.Create(request.Phone);
+
+        if (customer.Phone != phone) {
             var inUse = await _customerRepo.AnyAsync(
-                c => c.Phone == request.Phone && c.Id != request.Id, ct);
+                c => c.Phone == phone && c.Id != request.Id, ct);
             if (inUse)
-                throw new ResourceAlreadyExists("Customer", request.Phone);
+                throw new ResourceAlreadyExists("Customer", phone.Value);
         }
 
-        var customerToUpdate = request.ToDomain();
-
-        customerToUpdate.Id=customer.Id;
-        
-        await _customerRepo.ReplaceOneAsync(i=>i.Id==customer.Id, customerToUpdate, ct);
+        // The tracked entity is mutated through the domain method, so identity
+        // and CreatedAt are never touched and EF persists a real UPDATE.
+        customer.Update(request.FirstName, request.LastName,
+            Email.Create(request.Email), phone, request.Address);
 
         await _unitOfWork.SaveChangesAsync(ct);
 
         _logger.LogInformation("Customer updated. Id={CustomerId}", customer.Id);
 
-        return customerToUpdate.ToResponse();
+        return customer.ToResponse();
     }
 }

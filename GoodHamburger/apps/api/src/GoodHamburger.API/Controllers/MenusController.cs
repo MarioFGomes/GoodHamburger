@@ -2,6 +2,7 @@ using Asp.Versioning;
 using GoodHamburger.Application.DTOs.Requests;
 using GoodHamburger.Application.DTOs.Responses;
 using GoodHamburger.Application.UseCases.Menu;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace GoodHamburger.API.Controllers;
@@ -30,6 +31,7 @@ public class MenusController : EntityController {
     }
 
     [HttpPost]
+    [Authorize(Roles = "ADMIN")]
     [ProducesResponseType(typeof(ApiResponse<MenuResponse>), StatusCodes.Status201Created)]
     [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status400BadRequest)]
     [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status409Conflict)]
@@ -61,6 +63,7 @@ public class MenusController : EntityController {
     }
 
     [HttpPut("{id:guid}")]
+    [Authorize(Roles = "ADMIN")]
     [ProducesResponseType(typeof(ApiResponse<MenuResponse>), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status400BadRequest)]
     [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status404NotFound)]
@@ -74,12 +77,13 @@ public class MenusController : EntityController {
     }
 
     [HttpDelete("{id:guid}")]
+    [Authorize(Roles = "ADMIN")]
     [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status404NotFound)]
     public async Task<IActionResult> Delete([FromRoute] Guid id, CancellationToken ct) {
 
         await _delete.ExecuteAsync(id, ct);
 
-        return Ok(ApiResponse<object>.Ok(null!, "Menu deleted."));
+        return Ok(ApiResponse.Ok("Menu deleted."));
     }
 }

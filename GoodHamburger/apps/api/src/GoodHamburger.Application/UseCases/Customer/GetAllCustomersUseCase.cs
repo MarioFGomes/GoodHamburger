@@ -13,7 +13,7 @@ public class GetAllCustomersUseCase : IGetAllCustomersUseCase {
         if (page < 1) page = 1;
         if (pageSize < 1 || pageSize > 100) pageSize = 10;
 
-        var customers = await _customerRepo.GetAllAsync(ct,page, pageSize);
+        var customers = await _customerRepo.GetAllAsync(page, pageSize, ct);
         
         var total = await _customerRepo.CountAsync(ct);
 

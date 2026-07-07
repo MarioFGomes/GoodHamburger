@@ -34,7 +34,8 @@ public class ValidationFilter : IAsyncActionFilter {
                     .ToList();
 
                 context.Result = new BadRequestObjectResult(
-                    ApiResponse<object>.Fail("Validation error", StatusCodes.Status400BadRequest, errors));
+                    ApiResponse<object>.Fail("Validation failed.", StatusCodes.Status400BadRequest,
+                        errors, context.HttpContext.TraceIdentifier));
                 return;
             }
         }

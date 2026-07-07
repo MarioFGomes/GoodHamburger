@@ -31,7 +31,7 @@ public class SideDishesRepositoryBuilder {
     }
 
     public SideDishesRepositoryBuilder WithSideDishes(IEnumerable<SideDishes> list) {
-        _repo.Setup(r => r.GetAllAsync(It.IsAny<CancellationToken>(), It.IsAny<int>(), It.IsAny<int>()))
+        _repo.Setup(r => r.GetAllAsync(It.IsAny<int>(), It.IsAny<int>(), It.IsAny<CancellationToken>()))
              .ReturnsAsync(list);
         return this;
     }

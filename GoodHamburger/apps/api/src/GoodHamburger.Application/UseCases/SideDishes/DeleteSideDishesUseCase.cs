@@ -27,9 +27,9 @@ public class DeleteSideDishesUseCase : IDeleteSideDishesUseCase {
         if (inUse)
             throw new BusinessRuleException("Side dish is referenced by orders and cannot be deleted.");
 
-        await _sideDishRepo.DeleteAsync(s => s.Id == sideDish.Id, ct);
+        sideDish.MarkDeleted();
         await _unitOfWork.SaveChangesAsync(ct);
 
-        _logger.LogInformation("SideDish deleted. Id={SideDishId}", id);
+        _logger.LogInformation("SideDish soft-deleted. Id={SideDishId}", id);
     }
 }

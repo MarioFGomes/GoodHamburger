@@ -1,11 +1,11 @@
-﻿using GoodHamburger.Domain.Entities;
+using GoodHamburger.Domain.Entities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
 namespace GoodHamburger.Infrastructure.DataAccess.Configurations {
     public class OrderConfiguration : IEntityTypeConfiguration<Order> {
         public void Configure(EntityTypeBuilder<Order> builder) {
-            
+
             builder.ToTable("Orders");
 
             builder.HasKey(o => o.Id);
@@ -15,13 +15,13 @@ namespace GoodHamburger.Infrastructure.DataAccess.Configurations {
 
             builder.Property(o => o.CustomerID)
                    .IsRequired();
-           
+
             builder.Property(o => o.Subtotal)
                    .HasColumnType("decimal(18,2)")
                    .IsRequired();
 
-            builder.Property(o => o.Discount)
-                   .HasColumnType("decimal(5,2)")   
+            builder.Property(o => o.DiscountPercentage)
+                   .HasColumnType("decimal(5,2)")
                    .IsRequired();
 
             builder.Property(o => o.Total)
@@ -33,29 +33,33 @@ namespace GoodHamburger.Infrastructure.DataAccess.Configurations {
                    .HasMaxLength(20)
                    .IsRequired();
 
-            
+            builder.Property(o => o.IdempotencyKey)
+                   .HasMaxLength(64);
+
             builder.HasMany(o => o.OrderItems)
                    .WithOne(i => i.Order)
                    .HasForeignKey(i => i.OrderId)
                    .OnDelete(DeleteBehavior.Cascade);
 
-            
             builder.HasOne(o => o.Customer)
-                   .WithMany()                     
+                   .WithMany()
                    .HasForeignKey(o => o.CustomerID)
                    .OnDelete(DeleteBehavior.Restrict);
 
-            builder.Property(o => o.CreatedAt)
-                    .IsRequired();
-
-            builder.Property(o => o.UpdatedAt)
-                   .IsRequired();
+            builder.Property(o => o.CreatedAt).IsRequired();
+            builder.Property(o => o.UpdatedAt).IsRequired();
 
             builder.Metadata
                    .FindNavigation(nameof(Order.OrderItems))!
                    .SetPropertyAccessMode(PropertyAccessMode.Field);
 
             builder.HasIndex(o => o.OrderNumber).IsUnique();
+
+            // Two concurrent retries with the same key: the second insert hits
+            // this index and is translated to 409 instead of creating a duplicate.
+            builder.HasIndex(o => o.IdempotencyKey)
+                   .IsUnique()
+                   .HasFilter("[IdempotencyKey] IS NOT NULL");
         }
     }
 }

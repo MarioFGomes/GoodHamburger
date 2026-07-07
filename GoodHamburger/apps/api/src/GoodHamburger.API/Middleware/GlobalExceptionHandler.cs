@@ -34,53 +34,57 @@ public class GlobalExceptionHandler {
 
         if (context.Response.HasStarted) {
             _logger.LogError(exception,
-                "Response já iniciada — não foi possível escrever ProblemDetails.");
+                "Response has already started — unable to write the error envelope.");
             System.Runtime.ExceptionServices.ExceptionDispatchInfo.Capture(exception).Throw();
         }
 
-        var (status, title, detail) = MapStatus(exception);
+        var (status, detail) = MapStatus(exception);
 
         if (status >= 500)
-            _logger.LogError(exception, "Erro não tratado: {Message}", exception.Message);
+            _logger.LogError(exception, "Unhandled error: {Message}", exception.Message);
         else
             _logger.LogWarning(
-                "Falha tratada. Status={Status}, Type={ExceptionType}",
+                "Handled failure. Status={Status}, Type={ExceptionType}",
                 status, exception.GetType().Name);
 
         var message = detail ?? (status == StatusCodes.Status500InternalServerError && !_env.IsDevelopment()
-            ? "Ocorreu um erro interno. Contate o suporte."
+            ? "An internal error occurred. Contact support with the traceId."
             : exception.Message);
 
         var errors = exception is ValidationException ve
             ? ve.Errors.Select(e => $"{e.PropertyName}: {e.ErrorMessage}").ToList()
             : null;
 
-        var apiResponse = ApiResponse<object>.Fail(message, status, errors);
+        var apiResponse = ApiResponse<object>.Fail(message, status, errors, context.TraceIdentifier);
 
         context.Response.StatusCode = status;
         context.Response.ContentType = "application/json";
 
-        var json = JsonSerializer.Serialize(apiResponse, new JsonSerializerOptions {
-            PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
-            DefaultIgnoreCondition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull
-        });
+        // Same options as MVC — error payloads can never drift from success payloads.
+        var json = JsonSerializer.Serialize(apiResponse, ApiJsonOptions.Default);
 
         await context.Response.WriteAsync(json);
     }
 
-    private static (int status, string title, string? detail) MapStatus(Exception ex) => ex switch {
-        ValidationException =>                  (StatusCodes.Status400BadRequest, "Erro de validação.", null),
-        NotFoundException =>                    (StatusCodes.Status404NotFound, "Recurso não encontrado.", null),
-        ResourceAlreadyExists =>                (StatusCodes.Status409Conflict, "Recurso já existe.", null),
-        BusinessRuleException =>                (StatusCodes.Status422UnprocessableEntity, "Regra de negócio violada.", null),
-        DomainException =>                      (StatusCodes.Status422UnprocessableEntity, "Regra de domínio violada.", null),
-        UnauthorizedAccessException =>          (StatusCodes.Status401Unauthorized, "Acesso não autorizado.", null),
+    private static (int status, string? detail) MapStatus(Exception ex) => ex switch {
+        ValidationException =>              (StatusCodes.Status400BadRequest, null),
+        NotFoundException =>                (StatusCodes.Status404NotFound, null),
+        ResourceAlreadyExists =>            (StatusCodes.Status409Conflict, null),
+        BusinessRuleException =>            (StatusCodes.Status422UnprocessableEntity, null),
+        DomainException =>                  (StatusCodes.Status422UnprocessableEntity, null),
+        InvalidCredentialsException =>      (StatusCodes.Status401Unauthorized, null),
+        UnauthorizedAccessException =>      (StatusCodes.Status401Unauthorized, null),
 
-        // Rede de segurança: violações de índice único/FK que escaparam às
-        // verificações dos use cases (ex.: dois inserts concorrentes com o mesmo telefone).
-        DbUpdateException =>                    (StatusCodes.Status409Conflict, "Conflito de dados.",
-                                                 "A operação viola uma restrição de integridade (registro duplicado ou em uso)."),
+        // Optimistic concurrency: the row changed (or vanished) between read
+        // and write. The client should refetch and retry.
+        DbUpdateConcurrencyException =>     (StatusCodes.Status409Conflict,
+                                             "The resource was modified or removed by another request. Refresh and try again."),
 
-        _ => (StatusCodes.Status500InternalServerError, "Erro interno do servidor.", null)
+        // Safety net: unique index / FK violations that slipped past the
+        // use-case checks (e.g. two concurrent inserts with the same phone).
+        DbUpdateException =>                (StatusCodes.Status409Conflict,
+                                             "The operation violates a data integrity constraint (duplicate or referenced record)."),
+
+        _ => (StatusCodes.Status500InternalServerError, null)
     };
 }

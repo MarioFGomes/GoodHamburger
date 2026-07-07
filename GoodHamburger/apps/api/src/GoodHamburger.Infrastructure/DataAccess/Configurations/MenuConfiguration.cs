@@ -1,12 +1,11 @@
-﻿using GoodHamburger.Domain.Entities;
-using GoodHamburger.Domain.Enum;
-using Microsoft.EntityFrameworkCore.Metadata.Builders;
+using GoodHamburger.Domain.Entities;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
 namespace GoodHamburger.Infrastructure.DataAccess.Configurations;
 public class MenuConfiguration : IEntityTypeConfiguration<Menu> {
     public void Configure(EntityTypeBuilder<Menu> builder) {
-        
+
         builder.ToTable("Menus");
 
         builder.HasKey(m => m.Id);
@@ -18,30 +17,32 @@ public class MenuConfiguration : IEntityTypeConfiguration<Menu> {
         builder.Property(m => m.Description)
                .HasMaxLength(500);
 
-        builder.Property(m => m.Price)
-               .HasColumnType("decimal(18,2)")
-               .IsRequired();
+        // Money maps onto the same columns the flat decimal/enum used before,
+        // so adopting the value object required no data migration.
+        builder.OwnsOne(m => m.Price, price => {
+            price.Property(p => p.Amount)
+                 .HasColumnName("Price")
+                 .HasColumnType("decimal(18,2)")
+                 .IsRequired();
 
-      
-        builder.Property(m => m.Currency)
-               .HasConversion<string>()
-               .HasMaxLength(10)
-               .IsRequired();
+            price.Property(p => p.Currency)
+                 .HasColumnName("Currency")
+                 .HasConversion<string>()
+                 .HasMaxLength(10)
+                 .IsRequired();
+        });
+        builder.Navigation(m => m.Price).IsRequired();
 
         builder.Property(m => m.Status)
                .HasConversion<string>()
                .HasMaxLength(20)
                .IsRequired();
 
-        builder.Property(o => o.CreatedAt)
-                   .IsRequired();
+        builder.Property(o => o.CreatedAt).IsRequired();
+        builder.Property(o => o.UpdatedAt).IsRequired();
 
-        builder.Property(o => o.UpdatedAt)
-               .IsRequired();
-
-        // Uniqueness is checked in the use cases, but only the database can
-        // guarantee it under concurrent requests.
         builder.HasIndex(m => m.Name)
-               .IsUnique();
+               .IsUnique()
+               .HasFilter("[IsDeleted] = 0");
     }
 }

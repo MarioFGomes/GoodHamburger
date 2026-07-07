@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace GoodHamburger.Application.DTOs.Responses; 
+namespace GoodHamburger.Application.DTOs.Responses;
 public class CustomerResponse {
     public Guid Id { get; set; }
     public string? FirstName { get; set; }
@@ -12,4 +6,6 @@ public class CustomerResponse {
     public string? Address { get; set; }
     public string? Phone { get; set; }
     public string? Email { get; set; }
+    public DateTime CreatedAt { get; set; }
+    public DateTime UpdatedAt { get; set; }
 }

@@ -2,12 +2,14 @@ using Asp.Versioning;
 using GoodHamburger.Application.DTOs.Requests;
 using GoodHamburger.Application.DTOs.Responses;
 using GoodHamburger.Application.UseCases.Customer;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace GoodHamburger.API.Controllers;
 
 [ApiVersion("1.0")]
 [Route("api/v{version:apiVersion}/customers")]
+[Authorize]
 public class CustomersController : EntityController {
 
     private readonly ICreateCustomerUseCase _createCustomer;
@@ -87,6 +89,6 @@ public class CustomersController : EntityController {
 
         await _delete.ExecuteAsync(id, ct);
 
-        return Ok(ApiResponse<object>.Ok(null!, "Customer deleted."));
+        return Ok(ApiResponse.Ok("Customer deleted."));
     }
 }

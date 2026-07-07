@@ -3,6 +3,7 @@ using GoodHamburger.Application.DTOs.Responses;
 using GoodHamburger.Application.Exceptions;
 using GoodHamburger.Application.Mappers;
 using GoodHamburger.Domain.Repositories;
+using GoodHamburger.Domain.ValueObjects;
 using Microsoft.Extensions.Logging;
 
 namespace GoodHamburger.Application.UseCases.Menu;
@@ -31,14 +32,13 @@ public class UpdateMenuUseCase : IUpdateMenuUseCase {
                 throw new ResourceAlreadyExists("Menu", request.Name);
         }
 
-        var menuToUpdate = request.ToDomain();
+        menu.Update(request.Name, request.Description,
+            Money.Create(request.Price ?? 0m, request.Currency), request.Status);
 
-        menuToUpdate.Id=menu.Id;
-        await _menuRepo.ReplaceOneAsync(m => m.Id == menu.Id, menuToUpdate, ct);
         await _unitOfWork.SaveChangesAsync(ct);
 
         _logger.LogInformation("Menu updated. Id={MenuId}", menu.Id);
 
-        return menuToUpdate.ToResponse();
+        return menu.ToResponse();
     }
 }

@@ -1,82 +1,31 @@
 using GoodHamburger.Domain.Entities;
 using GoodHamburger.Domain.Enum;
-using Microsoft.EntityFrameworkCore;
+using GoodHamburger.Domain.ValueObjects;
 
 namespace GoodHamburger.Infrastructure.DataAccess.Seeds;
-public class SeedData {
 
-    public static void Seed(ModelBuilder modelBuilder) {
+/// <summary>
+/// Runtime catalog seeding. Runs at startup and only inserts when the tables
+/// are empty, so it is safe for existing databases (which already carry the
+/// rows inserted by the historical SeedInitialData migration).
+/// </summary>
+public static class SeedData {
 
-        var seedDate = new DateTime(2024, 1, 1, 0, 0, 0, DateTimeKind.Utc);
+    public static void EnsureSeeded(GoodHamburgerContext context) {
 
-        modelBuilder.Entity<Menu>().HasData(
-            new Menu {
-                Id          = new Guid("a1000000-0000-0000-0000-000000000001"),
-                Name        = "X Burger",
-                Description = "Pão, hambúrguer artesanal e queijo",
-                Price       = 5m,
-                Currency    = Currency.BRL,
-                Status      = MenuStatus.Available,
-                CreatedAt   = seedDate,
-                UpdatedAt   = seedDate
-            },
-            new Menu {
-                Id          = new Guid("a1000000-0000-0000-0000-000000000002"),
-                Name        = "X Egg",
-                Description = "Pão, hambúrguer artesanal, queijo e ovo",
-                Price       = 4.50m,
-                Currency    = Currency.BRL,
-                Status      = MenuStatus.Available,
-                CreatedAt   = seedDate,
-                UpdatedAt   = seedDate
-            },
-            new Menu {
-                Id          = new Guid("a1000000-0000-0000-0000-000000000003"),
-                Name        = "X Bacon",
-                Description = "Pão, hambúrguer artesanal, queijo e bacon",
-                Price       = 7m,
-                Currency    = Currency.BRL,
-                Status      = MenuStatus.Available,
-                CreatedAt   = seedDate,
-                UpdatedAt   = seedDate
-            }
-        );
+        if (!context.Set<Menu>().Any()) {
+            context.Set<Menu>().AddRange(
+                new Menu("X Burger", "Pão, hambúrguer artesanal e queijo", Money.Create(5m)),
+                new Menu("X Egg", "Pão, hambúrguer artesanal, queijo e ovo", Money.Create(4.50m)),
+                new Menu("X Bacon", "Pão, hambúrguer artesanal, queijo e bacon", Money.Create(7m)));
+        }
 
-        modelBuilder.Entity<SideDishes>().HasData(
-            new SideDishes {
-                Id          = new Guid("b2000000-0000-0000-0000-000000000001"),
-                Name        = "Batata Frita",
-                Description = "Porção de batata frita crocante",
-                Price       = 2m,
-                Category    = SideDishCategory.FRIES,
-                Currency    = Currency.BRL,
-                Status      = MenuStatus.Available,
-                CreatedAt   = seedDate,
-                UpdatedAt   = seedDate
-            },
-            new SideDishes {
-                Id          = new Guid("b2000000-0000-0000-0000-000000000002"),
-                Name        = "Refrigerante",
-                Description = "Lata 350ml",
-                Price       = 2.50m,
-                Category    = SideDishCategory.DRINK,
-                Currency    = Currency.BRL,
-                Status      = MenuStatus.Available,
-                CreatedAt   = seedDate,
-                UpdatedAt   = seedDate
-            }
-        );
+        if (!context.Set<SideDishes>().Any()) {
+            context.Set<SideDishes>().AddRange(
+                new SideDishes("Batata Frita", "Porção de batata frita crocante", Money.Create(2m), SideDishCategory.FRIES),
+                new SideDishes("Refrigerante", "Lata 350ml", Money.Create(2.50m), SideDishCategory.DRINK));
+        }
 
-        modelBuilder.Entity<Customer>().HasData(
-            new Customer {
-                Id        = new Guid("c3000000-0000-0000-0000-000000000001"),
-                FirstName = "Lucas",
-                LastName  = "Silva",
-                Address   = "Rio de Janeiro",
-                Phone     = "+55 21 97534-2254",
-                CreatedAt = seedDate,
-                UpdatedAt = seedDate
-            }
-        );
+        context.SaveChanges();
     }
 }

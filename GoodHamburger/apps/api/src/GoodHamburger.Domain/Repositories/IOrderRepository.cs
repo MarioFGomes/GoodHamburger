@@ -1,8 +1,9 @@
-﻿using GoodHamburger.Domain.Entities;
+using GoodHamburger.Domain.Entities;
 
 namespace GoodHamburger.Domain.Repositories;
 public interface IOrderRepository : IBaseRepository<Order> {
     Task<Order?> GetWithItemsAsync(Guid id, CancellationToken ct = default);
+    Task<Order?> GetByIdempotencyKeyAsync(string idempotencyKey, CancellationToken ct = default);
     Task<IEnumerable<Order>> GetAllWithItemsAsync(int page, int pageSize, CancellationToken ct = default);
     Task<int> NextOrderNumberAsync(CancellationToken ct = default);
 }

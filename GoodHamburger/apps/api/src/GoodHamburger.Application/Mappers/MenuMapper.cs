@@ -1,6 +1,7 @@
 using GoodHamburger.Application.DTOs.Requests;
 using GoodHamburger.Application.DTOs.Responses;
 using GoodHamburger.Domain.Entities;
+using GoodHamburger.Domain.ValueObjects;
 
 namespace GoodHamburger.Application.Mappers;
 public static class MenuMapper {
@@ -10,28 +11,16 @@ public static class MenuMapper {
             Id = menu.Id,
             Name = menu.Name,
             Description = menu.Description,
-            Price = menu.Price,
-            Currency = menu.Currency,
+            Price = menu.Price.Amount,
+            Currency = menu.Price.Currency,
             Status = menu.Status,
         };
     }
 
     public static Menu ToDomain(this CreateMenuRequest request) {
-        return new Menu {
-            Name = request.Name,
-            Description = request.Description,
-            Price = request.Price,
-            Currency = request.Currency,
-        };
-    }
-
-    public static Menu ToDomain(this UpdateMenuRequest request) {
-        return new Menu {
-            Name = request.Name,
-            Description = request.Description,
-            Price = request.Price,
-            Currency = request.Currency,
-            Status = request.Status,
-        };
+        return new Menu(
+            request.Name,
+            request.Description,
+            Money.Create(request.Price ?? 0m, request.Currency));
     }
 }

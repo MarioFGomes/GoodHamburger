@@ -7,7 +7,7 @@ public class OrderResponse {
     public Guid CustomerId { get; set; }
     public string CustomerName { get; set; } = string.Empty;
     public decimal Subtotal { get; set; }
-    public decimal Discount { get; set; }
+    public decimal DiscountPercentage { get; set; }
     public decimal Total { get; set; }
     public OrderStatus Status { get; set; }
     public DateTime CreatedAt { get; set; }

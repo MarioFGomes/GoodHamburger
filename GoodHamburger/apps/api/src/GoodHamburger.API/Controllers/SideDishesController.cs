@@ -2,6 +2,7 @@ using Asp.Versioning;
 using GoodHamburger.Application.DTOs.Requests;
 using GoodHamburger.Application.DTOs.Responses;
 using GoodHamburger.Application.UseCases.SideDishes;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace GoodHamburger.API.Controllers;
@@ -30,6 +31,7 @@ public class SideDishesController : EntityController {
     }
 
     [HttpPost]
+    [Authorize(Roles = "ADMIN")]
     [ProducesResponseType(typeof(ApiResponse<SideDishesResponse>), StatusCodes.Status201Created)]
     [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status400BadRequest)]
     [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status409Conflict)]
@@ -55,6 +57,7 @@ public class SideDishesController : EntityController {
     }
 
     [HttpPut("{id:guid}")]
+    [Authorize(Roles = "ADMIN")]
     [ProducesResponseType(typeof(ApiResponse<SideDishesResponse>), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status400BadRequest)]
     [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status404NotFound)]
@@ -65,10 +68,11 @@ public class SideDishesController : EntityController {
     }
 
     [HttpDelete("{id:guid}")]
+    [Authorize(Roles = "ADMIN")]
     [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status404NotFound)]
     public async Task<IActionResult> Delete([FromRoute] Guid id, CancellationToken ct) {
         await _delete.ExecuteAsync(id, ct);
-        return Ok(ApiResponse<object>.Ok(null!, "Side dish deleted."));
+        return Ok(ApiResponse.Ok("Side dish deleted."));
     }
 }
