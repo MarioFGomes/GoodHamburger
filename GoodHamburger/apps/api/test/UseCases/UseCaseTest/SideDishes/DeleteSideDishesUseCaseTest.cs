@@ -14,7 +14,8 @@ public class DeleteSideDishesUseCaseTest {
     public async Task Success() {
         var sideDish = SideDishesBuilder.Create().ToEntity();
         var repo = SideDishesRepositoryBuilder.Instance().WithSideDish(sideDish).Build();
-        var useCase = new DeleteSideDishesUseCase(repo, UnitOfWorkBuilder.Instance().Build(), NullLogger<DeleteSideDishesUseCase>.Instance);
+        var orderSideDishRepo = OrderSideDishesRepositoryBuilder.Instance().WithAnyMatch(false).Build();
+        var useCase = new DeleteSideDishesUseCase(repo, orderSideDishRepo, UnitOfWorkBuilder.Instance().Build(), NullLogger<DeleteSideDishesUseCase>.Instance);
         var act = () => useCase.ExecuteAsync(sideDish.Id);
         await act.Should().NotThrowAsync();
     }
@@ -26,9 +27,20 @@ public class DeleteSideDishesUseCaseTest {
     [Fact]
     public async Task SideDishNotFound() {
         var repo = SideDishesRepositoryBuilder.Instance().WithSideDish(null).Build();
-        var useCase = new DeleteSideDishesUseCase(repo, UnitOfWorkBuilder.Instance().Build(), NullLogger<DeleteSideDishesUseCase>.Instance);
+        var orderSideDishRepo = OrderSideDishesRepositoryBuilder.Instance().WithAnyMatch(false).Build();
+        var useCase = new DeleteSideDishesUseCase(repo, orderSideDishRepo, UnitOfWorkBuilder.Instance().Build(), NullLogger<DeleteSideDishesUseCase>.Instance);
         var act = () => useCase.ExecuteAsync(Guid.NewGuid());
         await act.Should().ThrowAsync<NotFoundException>();
+    }
+
+    [Fact]
+    public async Task SideDishReferencedByOrdersCannotBeDeleted() {
+        var sideDish = SideDishesBuilder.Create().ToEntity();
+        var repo = SideDishesRepositoryBuilder.Instance().WithSideDish(sideDish).Build();
+        var orderSideDishRepo = OrderSideDishesRepositoryBuilder.Instance().WithAnyMatch(true).Build();
+        var useCase = new DeleteSideDishesUseCase(repo, orderSideDishRepo, UnitOfWorkBuilder.Instance().Build(), NullLogger<DeleteSideDishesUseCase>.Instance);
+        var act = () => useCase.ExecuteAsync(sideDish.Id);
+        await act.Should().ThrowAsync<BusinessRuleException>();
     }
 
     #endregion

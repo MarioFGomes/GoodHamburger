@@ -29,13 +29,9 @@ public class MenuBuilder {
     }
 
     public Menu ToEntity() {
-        return new Menu {
+        return new Menu(Name, Description,
+            GoodHamburger.Domain.ValueObjects.Money.Create(Price ?? 0m, Currency)) {
             Id = Guid.NewGuid(),
-            Name = Name,
-            Description = Description,
-            Price = Price,
-            Currency = Currency,
-            Status = MenuStatus.Available
         };
     }
 

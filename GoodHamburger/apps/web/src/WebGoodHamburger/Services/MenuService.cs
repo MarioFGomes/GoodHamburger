@@ -13,15 +13,15 @@ public class MenuService {
 
     public async Task<ApiResult<PagedResponse<MenuResponse>>> GetAllAsync(int page = 1, int pageSize = 10) {
         try {
-            var result = await _http.GetFromJsonAsync<PagedResponse<MenuResponse>>($"api/v1/menus?page={page}&pageSize={pageSize}", _json);
-            return ApiResult<PagedResponse<MenuResponse>>.Success(result!);
+            var result = await _http.GetFromJsonAsync<ApiResponse<PagedResponse<MenuResponse>>>($"api/v1/menus?page={page}&pageSize={pageSize}", _json);
+            return ApiResult<PagedResponse<MenuResponse>>.Success(result!.Data!);
         } catch (Exception ex) { return ApiResult<PagedResponse<MenuResponse>>.Failure(ex.Message); }
     }
 
     public async Task<ApiResult<MenuResponse>> GetByIdAsync(Guid id) {
         try {
-            var result = await _http.GetFromJsonAsync<MenuResponse>($"api/v1/menus/{id}", _json);
-            return ApiResult<MenuResponse>.Success(result!);
+            var result = await _http.GetFromJsonAsync<ApiResponse<MenuResponse>>($"api/v1/menus/{id}", _json);
+            return ApiResult<MenuResponse>.Success(result!.Data!);
         } catch (Exception ex) { return ApiResult<MenuResponse>.Failure(ex.Message); }
     }
 
@@ -30,7 +30,8 @@ public class MenuService {
             var response = await _http.PostAsJsonAsync("api/v1/menus", request, _json);
             if (!response.IsSuccessStatusCode)
                 return ApiResult<MenuResponse>.Failure(ApiErrorParser.Extract(await response.Content.ReadAsStringAsync()));
-            return ApiResult<MenuResponse>.Success((await response.Content.ReadFromJsonAsync<MenuResponse>(_json))!);
+            var envelope = await response.Content.ReadFromJsonAsync<ApiResponse<MenuResponse>>(_json);
+            return ApiResult<MenuResponse>.Success(envelope!.Data!);
         } catch (Exception ex) { return ApiResult<MenuResponse>.Failure(ex.Message); }
     }
 
@@ -39,7 +40,8 @@ public class MenuService {
             var response = await _http.PutAsJsonAsync($"api/v1/menus/{id}", request, _json);
             if (!response.IsSuccessStatusCode)
                 return ApiResult<MenuResponse>.Failure(ApiErrorParser.Extract(await response.Content.ReadAsStringAsync()));
-            return ApiResult<MenuResponse>.Success((await response.Content.ReadFromJsonAsync<MenuResponse>(_json))!);
+            var envelope = await response.Content.ReadFromJsonAsync<ApiResponse<MenuResponse>>(_json);
+            return ApiResult<MenuResponse>.Success(envelope!.Data!);
         } catch (Exception ex) { return ApiResult<MenuResponse>.Failure(ex.Message); }
     }
 

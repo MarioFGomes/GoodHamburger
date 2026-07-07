@@ -3,6 +3,7 @@ using GoodHamburger.Application.DTOs.Responses;
 using GoodHamburger.Application.Exceptions;
 using GoodHamburger.Application.Mappers;
 using GoodHamburger.Domain.Repositories;
+using GoodHamburger.Domain.ValueObjects;
 using Microsoft.Extensions.Logging;
 
 namespace GoodHamburger.Application.UseCases.SideDishes;
@@ -31,15 +32,14 @@ public class UpdateSideDishesUseCase : IUpdateSideDishesUseCase {
                 throw new ResourceAlreadyExists("SideDish", request.Name);
         }
 
-        var sideDishToUpdate = request.ToDomain();
+        sideDish.Update(request.Name, request.Description,
+            Money.Create(request.Price ?? 0m, request.Currency),
+            request.Category, request.Status);
 
-        sideDishToUpdate.Id=sideDish.Id;
-
-        await _sideDishRepo.ReplaceOneAsync(s => s.Id == sideDish.Id, sideDishToUpdate, ct);
         await _unitOfWork.SaveChangesAsync(ct);
 
         _logger.LogInformation("SideDish updated. Id={SideDishId}", sideDish.Id);
 
-        return sideDishToUpdate.ToResponse();
+        return sideDish.ToResponse();
     }
 }

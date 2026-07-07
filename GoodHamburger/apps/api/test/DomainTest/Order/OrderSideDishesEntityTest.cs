@@ -13,7 +13,7 @@ public class OrderSideDishesEntityTest {
         result.SideDishesId.Should().Be(sideDishId);
         result.Category.Should().Be(SideDishCategory.FRIES);
         result.UnitPrice.Should().Be(5.00m);
-        result.Qtd.Should().Be(1);
+        result.Quantity.Should().Be(1);
         result.Id.Should().NotBe(Guid.Empty);
     }
 
@@ -22,7 +22,7 @@ public class OrderSideDishesEntityTest {
         var act = () => new OrderSideDishes(Guid.NewGuid(), SideDishCategory.FRIES, -0.01m);
 
         act.Should().Throw<DomainException>()
-           .WithMessage("*negativo*");
+           .WithMessage("*negative*");
     }
 
     [Fact]

@@ -1,19 +1,14 @@
-﻿using GoodHamburger.Domain.Enum;
+using GoodHamburger.Domain.Enum;
 using GoodHamburger.Domain.Exceptions;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
-namespace GoodHamburger.Domain.Entities; 
-public class OrderItem: EntityBase {
+namespace GoodHamburger.Domain.Entities;
+public class OrderItem : EntityBase {
     public Guid OrderId { get; set; }
     public Guid MenuId { get; set; }
-    public int Qtd { get; private set; }
+    public int Quantity { get; private set; }
     public decimal UnitPrice { get; set; }
-    public virtual Order Order { get; set; }
-    public virtual Menu Menu { get; set; }
+    public virtual Order Order { get; set; } = null!;
+    public virtual Menu Menu { get; set; } = null!;
 
     private readonly List<OrderSideDishes> _OrderSideDishes = new();
     public IReadOnlyCollection<OrderSideDishes> OrderSideDishes => _OrderSideDishes;
@@ -21,21 +16,20 @@ public class OrderItem: EntityBase {
     protected OrderItem() { }
 
     public OrderItem(Guid menuId, decimal unitPrice) {
-        if (unitPrice < 0) throw new DomainException("Preço não pode ser negativo.");
+        if (unitPrice < 0) throw new DomainException("Price cannot be negative.");
         MenuId = menuId;
-        Qtd = 1;                      
+        Quantity = 1;
         UnitPrice = unitPrice;
-        Id = Guid.NewGuid();
     }
 
     public void AddSideDish(Guid sideDishesId, SideDishCategory category, decimal unitPrice) {
-      
+
         var alreadyHasCategory = _OrderSideDishes.Any(s => s.Category == category);
-        
+
         if (alreadyHasCategory) {
-            var nome = category == SideDishCategory.FRIES ? "batata frita" : "refrigerante";
+            var name = category == SideDishCategory.FRIES ? "fries" : "drink";
             throw new DomainException(
-                $"Este pedido já contém um {nome}. Não é permitido duplicar acompanhamentos.");
+                $"This order already contains {name}. Duplicate side dishes are not allowed.");
         }
 
         _OrderSideDishes.Add(new OrderSideDishes(sideDishesId, category, unitPrice));
@@ -46,8 +40,6 @@ public class OrderItem: EntityBase {
 
     public decimal CalculateTotal() {
         var sideDishesTotal = _OrderSideDishes.Sum(sd => sd.CalculateTotal());
-        return (UnitPrice * Qtd) + sideDishesTotal;
+        return (UnitPrice * Quantity) + sideDishesTotal;
     }
-
 }
-

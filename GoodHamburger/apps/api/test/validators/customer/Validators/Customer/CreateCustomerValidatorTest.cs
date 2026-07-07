@@ -11,8 +11,8 @@ public class CreateCustomerValidatorTest {
     [Fact]
     public void ValidateSuccess() {
         var validator = new CreateCustomerRequestValidator();
-        var request = CustomerBuilder.Create();
-        var result = validator.Validate(request.ToRequest());
+        var request = CustomerBuilder.Create().ToRequest();
+        var result = validator.Validate(request);
         result.IsValid.Should().BeTrue();
     }
 
@@ -23,72 +23,72 @@ public class CreateCustomerValidatorTest {
     [Fact]
     public void ValidateFirstNameEmpty() {
         var validator = new CreateCustomerRequestValidator();
-        var request = CustomerBuilder.Create();
+        var request = CustomerBuilder.Create().ToRequest();
         request.FirstName = string.Empty;
-        var result = validator.Validate(request.ToRequest());
+        var result = validator.Validate(request);
         result.IsValid.Should().BeFalse();
     }
 
     [Fact]
     public void ValidateLastNameEmpty() {
         var validator = new CreateCustomerRequestValidator();
-        var request = CustomerBuilder.Create();
+        var request = CustomerBuilder.Create().ToRequest();
         request.LastName = string.Empty;
-        var result = validator.Validate(request.ToRequest());
+        var result = validator.Validate(request);
         result.IsValid.Should().BeFalse();
     }
 
     [Fact]
     public void ValidatePhoneEmpty() {
         var validator = new CreateCustomerRequestValidator();
-        var request = CustomerBuilder.Create();
+        var request = CustomerBuilder.Create().ToRequest();
         request.Phone = string.Empty;
-        var result = validator.Validate(request.ToRequest());
+        var result = validator.Validate(request);
         result.IsValid.Should().BeFalse();
     }
 
     [Fact]
     public void ValidatePhoneInvalidFormat() {
         var validator = new CreateCustomerRequestValidator();
-        var request = CustomerBuilder.Create();
+        var request = CustomerBuilder.Create().ToRequest();
         request.Phone = "abc";
-        var result = validator.Validate(request.ToRequest());
+        var result = validator.Validate(request);
         result.IsValid.Should().BeFalse();
     }
 
     [Fact]
     public void ValidateEmailEmpty() {
         var validator = new CreateCustomerRequestValidator();
-        var request = CustomerBuilder.Create();
+        var request = CustomerBuilder.Create().ToRequest();
         request.Email = string.Empty;
-        var result = validator.Validate(request.ToRequest());
+        var result = validator.Validate(request);
         result.IsValid.Should().BeFalse();
     }
 
     [Fact]
     public void ValidateEmailInvalidFormat() {
         var validator = new CreateCustomerRequestValidator();
-        var request = CustomerBuilder.Create();
+        var request = CustomerBuilder.Create().ToRequest();
         request.Email = "nao-e-email";
-        var result = validator.Validate(request.ToRequest());
+        var result = validator.Validate(request);
         result.IsValid.Should().BeFalse();
     }
 
     [Fact]
     public void ValidateFirstNameExceedsMaxLength() {
         var validator = new CreateCustomerRequestValidator();
-        var request = CustomerBuilder.Create();
+        var request = CustomerBuilder.Create().ToRequest();
         request.FirstName = new string('a', 101);
-        var result = validator.Validate(request.ToRequest());
+        var result = validator.Validate(request);
         result.IsValid.Should().BeFalse();
     }
 
     [Fact]
     public void ValidateLastNameExceedsMaxLength() {
         var validator = new CreateCustomerRequestValidator();
-        var request = CustomerBuilder.Create();
+        var request = CustomerBuilder.Create().ToRequest();
         request.LastName = new string('a', 101);
-        var result = validator.Validate(request.ToRequest());
+        var result = validator.Validate(request);
         result.IsValid.Should().BeFalse();
     }
 

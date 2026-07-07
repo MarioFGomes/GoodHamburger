@@ -66,8 +66,8 @@
             <MudPaper Elevation="2" Class="pa-4">
                 <MudText Typo="Typo.caption" Color="Color.Secondary"
                          Style="text-transform:uppercase;letter-spacing:1px;">Discount</MudText>
-                @if (_order.Discount > 0) {
-                    <MudText Typo="Typo.h6" Style="font-weight:700;color:#16a34a;">-@_order.Discount%</MudText>
+                @if (_order.DiscountPercentage > 0) {
+                    <MudText Typo="Typo.h6" Style="font-weight:700;color:#16a34a;">-@_order.DiscountPercentage%</MudText>
                 } else {
                     <MudText Typo="Typo.h6" Color="Color.Secondary">—</MudText>
                 }
@@ -104,7 +104,7 @@
                                         R$ @item.UnitPrice.ToString("F2")
                                     </MudText>
                                 </div>
-                                <MudText Typo="Typo.caption" Color="Color.Secondary">Qty: @item.Qtd</MudText>
+                                <MudText Typo="Typo.caption" Color="Color.Secondary">Qty: @item.Quantity</MudText>
 
                                 @if (item.SideDishes.Any()) {
                                     <MudText Typo="Typo.caption" Class="mt-3 mb-1"
@@ -120,7 +120,7 @@
                                                 <MudText Typo="Typo.body2" Style="flex:1;">
                                                     @(string.IsNullOrEmpty(sd.Name) ? sd.Category.ToString() : sd.Name)
                                                 </MudText>
-                                                <MudText Typo="Typo.caption" Color="Color.Secondary">Qty: @sd.Qtd</MudText>
+                                                <MudText Typo="Typo.caption" Color="Color.Secondary">Qty: @sd.Quantity</MudText>
                                                 <MudText Typo="Typo.body2" Style="font-weight:600;">
                                                     R$ @sd.UnitPrice.ToString("F2")
                                                 </MudText>

@@ -1,4 +1,5 @@
-﻿using FluentValidation;
+using FluentValidation;
+using GoodHamburger.Application.DTOs.Responses;
 using Microsoft.AspNetCore.Mvc.Filters;
 using Microsoft.AspNetCore.Mvc;
 
@@ -22,29 +23,23 @@ public class ValidationFilter : IAsyncActionFilter {
             var validatorType = typeof(IValidator<>).MakeGenericType(argumentType);
             var validator = _serviceProvider.GetService(validatorType) as IValidator;
 
-            if (validator is null) continue;   
+            if (validator is null) continue;
 
             var validationContext = new ValidationContext<object>(argument.Value);
             var result = await validator.ValidateAsync(validationContext);
 
             if (!result.IsValid) {
                 var errors = result.Errors
-                    .GroupBy(e => e.PropertyName)
-                    .ToDictionary(
-                        g => g.Key,
-                        g => g.Select(e => e.ErrorMessage).ToArray());
+                    .Select(e => $"{e.PropertyName}: {e.ErrorMessage}")
+                    .ToList();
 
-                var problem = new ValidationProblemDetails(errors) {
-                    Status = StatusCodes.Status400BadRequest,
-                    Title = "Validation error",
-                    Type = "https://tools.ietf.org/html/rfc7231#section-6.5.1"
-                };
-
-                context.Result = new BadRequestObjectResult(problem);
-                return;   
+                context.Result = new BadRequestObjectResult(
+                    ApiResponse<object>.Fail("Validation failed.", StatusCodes.Status400BadRequest,
+                        errors, context.HttpContext.TraceIdentifier));
+                return;
             }
         }
 
-        await next();   
+        await next();
     }
 }

@@ -1,9 +1,9 @@
-﻿using FluentValidation;
 using GoodHamburger.Application.DTOs.Requests;
 using GoodHamburger.Application.DTOs.Responses;
 using GoodHamburger.Application.Exceptions;
 using GoodHamburger.Application.Mappers;
 using GoodHamburger.Domain.Repositories;
+using GoodHamburger.Domain.ValueObjects;
 using Microsoft.Extensions.Logging;
 
 namespace GoodHamburger.Application.UseCases.Customer;
@@ -14,37 +14,30 @@ public class CreateCustomerUseCase : ICreateCustomerUseCase {
     private readonly ILogger<CreateCustomerUseCase> _logger;
 
     public CreateCustomerUseCase(ICustomerRepository customerRepo, IUnitOfWork unitOfWork,
-        ILogger<CreateCustomerUseCase> logger)
-    {
+        ILogger<CreateCustomerUseCase> logger) {
         _customerRepo = customerRepo;
         _unitOfWork = unitOfWork;
         _logger = logger;
     }
+
     public async Task<CustomerResponse> ExecuteAsync(CreateCustomerRequest request, CancellationToken ct = default) {
 
-        var phoneInUse = await _customerRepo.AnyAsync(i => i.Phone == request.Phone, ct);
-        
-            if (phoneInUse) {
-            
-            _logger.LogWarning(
-                "Attempt to register an already existing customer.. Phone={Phone}",
-                request.Phone);
+        var phone = Phone.Create(request.Phone);
 
-            throw new ResourceAlreadyExists("Customer", request.Phone);
+        var phoneInUse = await _customerRepo.AnyAsync(c => c.Phone == phone, ct);
+        if (phoneInUse) {
+            // Phone is PII: never log it in clear text.
+            _logger.LogWarning("Attempt to register a customer with a phone already in use.");
+            throw new ResourceAlreadyExists("Customer", phone.Value);
         }
-        
-            var customer = request.ToDomain();
 
-            await _customerRepo.AddOneAsync(customer, ct);
+        var customer = request.ToDomain();
 
-            await _unitOfWork.SaveChangesAsync(ct);
+        await _customerRepo.AddOneAsync(customer, ct);
+        await _unitOfWork.SaveChangesAsync(ct);
 
-            _logger.LogInformation(
-                  "Customer created. Id={CustomerId}, Name={FirstName}",
-                  customer.Id,
-                  customer.FirstName);
+        _logger.LogInformation("Customer created. Id={CustomerId}", customer.Id);
 
-            return customer.ToResponse();
-        
+        return customer.ToResponse();
     }
 }

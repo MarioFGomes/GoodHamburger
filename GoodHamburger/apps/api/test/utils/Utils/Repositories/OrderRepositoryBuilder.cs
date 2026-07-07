@@ -20,6 +20,8 @@ public class OrderRepositoryBuilder {
     public OrderRepositoryBuilder WithOrder(Order? order) {
         _repo.Setup(r => r.GetWithItemsAsync(It.IsAny<Guid>(), It.IsAny<CancellationToken>()))
              .ReturnsAsync(order);
+        _repo.Setup(r => r.GetOneAsync(It.IsAny<System.Linq.Expressions.Expression<Func<Order, bool>>>(), It.IsAny<CancellationToken>()))
+             .ReturnsAsync(order);
         return this;
     }
 
@@ -32,6 +34,12 @@ public class OrderRepositoryBuilder {
     public OrderRepositoryBuilder WithCount(int count) {
         _repo.Setup(r => r.CountAsync(It.IsAny<CancellationToken>()))
              .ReturnsAsync(count);
+        return this;
+    }
+
+    public OrderRepositoryBuilder WithAnyMatch(bool any) {
+        _repo.Setup(r => r.AnyAsync(It.IsAny<System.Linq.Expressions.Expression<Func<Order, bool>>>(), It.IsAny<CancellationToken>()))
+             .ReturnsAsync(any);
         return this;
     }
 

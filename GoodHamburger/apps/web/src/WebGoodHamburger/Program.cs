@@ -1,7 +1,5 @@
 using System.Text.Json;
 using System.Text.Json.Serialization;
-using Microsoft.AspNetCore.Components;
-using Microsoft.AspNetCore.Components.Web;
 using MudBlazor.Services;
 using WebGoodHamburger.Services;
 
@@ -27,9 +25,24 @@ namespace WebGoodHamburger {
                 Converters = { new JsonStringEnumConverter(JsonNamingPolicy.CamelCase, allowIntegerValues: true) }
             });
 
-            builder.Services.AddHttpClient("GoodHamburgerApi", client => {
-                client.BaseAddress = new Uri(builder.Configuration["ApiSettings:BaseUrl"]!);
+            var apiBaseUrl = new Uri(builder.Configuration["ApiSettings:BaseUrl"]!);
+
+            builder.Services.AddSingleton<ApiTokenCache>();
+            builder.Services.AddTransient<ApiAuthTokenHandler>();
+
+            // Plain client used only to obtain tokens (no auth handler, no recursion).
+            builder.Services.AddHttpClient("GoodHamburgerAuth", client => {
+                client.BaseAddress = apiBaseUrl;
+                client.Timeout = TimeSpan.FromSeconds(15);
             });
+
+            builder.Services.AddHttpClient("GoodHamburgerApi", client => {
+                client.BaseAddress = apiBaseUrl;
+                // Explicit timeout: a hung API must not pin Blazor circuits
+                // for the 100-second default.
+                client.Timeout = TimeSpan.FromSeconds(30);
+            })
+            .AddHttpMessageHandler<ApiAuthTokenHandler>();
 
             builder.Services.AddScoped<CustomerService>();
             builder.Services.AddScoped<MenuService>();

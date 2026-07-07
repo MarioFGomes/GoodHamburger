@@ -12,15 +12,15 @@ public class CreateCustomerRequestValidator : AbstractValidator<CreateCustomerRe
     public CreateCustomerRequestValidator() {
 
         RuleFor(x => x.FirstName)
-            .NotEmpty().WithMessage("FirstName is requerido.")
+            .NotEmpty().WithMessage("FirstName is required.")
             .MaximumLength(100);
 
         RuleFor(x => x.LastName)
-            .NotEmpty().WithMessage("LastName  is requerido")
+            .NotEmpty().WithMessage("LastName is required.")
             .MaximumLength(100);
 
         RuleFor(x => x.Phone)
-            .NotEmpty().WithMessage("Phone  is requerido.")
+            .NotEmpty().WithMessage("Phone is required.")
             .Matches(@"^\+?[0-9]{9,15}$")
             .WithMessage("Phone number should contain only digits. (9 a 15).");
 

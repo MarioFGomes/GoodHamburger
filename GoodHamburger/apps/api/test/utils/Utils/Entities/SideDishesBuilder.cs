@@ -34,14 +34,9 @@ public class SideDishesBuilder {
     }
 
     public SideDishes ToEntity() {
-        return new SideDishes {
+        return new SideDishes(Name, Description,
+            GoodHamburger.Domain.ValueObjects.Money.Create(Price ?? 0m, Currency), Category) {
             Id = Guid.NewGuid(),
-            Name = Name,
-            Description = Description,
-            Price = Price,
-            Category = Category,
-            Currency = Currency,
-            Status = MenuStatus.Available
         };
     }
 

@@ -24,7 +24,7 @@ public class CreateOrderUseCaseTest {
         var useCase = BuildUseCase(customerExists: true, menu: menu);
         var result = await useCase.ExecuteAsync(request);
         result.Should().NotBeNull();
-        result.Discount.Should().Be(0);
+        result.DiscountPercentage.Should().Be(0);
     }
 
     [Fact]
@@ -40,7 +40,7 @@ public class CreateOrderUseCaseTest {
         var useCase = BuildUseCase(customerExists: true, menu: menu, sideDishRepo: sideDishRepo);
         var result = await useCase.ExecuteAsync(request);
         result.Should().NotBeNull();
-        result.Discount.Should().Be(10);
+        result.DiscountPercentage.Should().Be(10);
     }
 
     [Fact]
@@ -56,7 +56,7 @@ public class CreateOrderUseCaseTest {
         var useCase = BuildUseCase(customerExists: true, menu: menu, sideDishRepo: sideDishRepo);
         var result = await useCase.ExecuteAsync(request);
         result.Should().NotBeNull();
-        result.Discount.Should().Be(15);
+        result.DiscountPercentage.Should().Be(15);
     }
 
     [Fact]
@@ -79,7 +79,7 @@ public class CreateOrderUseCaseTest {
         var useCase = BuildUseCase(customerExists: true, menu: menu, sideDishRepo: sideDishRepoMock.Object);
         var result = await useCase.ExecuteAsync(request);
         result.Should().NotBeNull();
-        result.Discount.Should().Be(20);
+        result.DiscountPercentage.Should().Be(20);
     }
 
     #endregion

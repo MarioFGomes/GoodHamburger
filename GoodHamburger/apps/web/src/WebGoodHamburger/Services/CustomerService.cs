@@ -13,15 +13,15 @@ public class CustomerService {
 
     public async Task<ApiResult<PagedResponse<CustomerResponse>>> GetAllAsync(int page = 1, int pageSize = 10) {
         try {
-            var result = await _http.GetFromJsonAsync<PagedResponse<CustomerResponse>>($"api/v1/customers?page={page}&pageSize={pageSize}", _json);
-            return ApiResult<PagedResponse<CustomerResponse>>.Success(result!);
+            var result = await _http.GetFromJsonAsync<ApiResponse<PagedResponse<CustomerResponse>>>($"api/v1/customers?page={page}&pageSize={pageSize}", _json);
+            return ApiResult<PagedResponse<CustomerResponse>>.Success(result!.Data!);
         } catch (Exception ex) { return ApiResult<PagedResponse<CustomerResponse>>.Failure(ex.Message); }
     }
 
     public async Task<ApiResult<CustomerResponse>> GetByIdAsync(Guid id) {
         try {
-            var result = await _http.GetFromJsonAsync<CustomerResponse>($"api/v1/customers/{id}", _json);
-            return ApiResult<CustomerResponse>.Success(result!);
+            var result = await _http.GetFromJsonAsync<ApiResponse<CustomerResponse>>($"api/v1/customers/{id}", _json);
+            return ApiResult<CustomerResponse>.Success(result!.Data!);
         } catch (Exception ex) { return ApiResult<CustomerResponse>.Failure(ex.Message); }
     }
 
@@ -30,7 +30,8 @@ public class CustomerService {
             var response = await _http.PostAsJsonAsync("api/v1/customers", request, _json);
             if (!response.IsSuccessStatusCode)
                 return ApiResult<CustomerResponse>.Failure(ApiErrorParser.Extract(await response.Content.ReadAsStringAsync()));
-            return ApiResult<CustomerResponse>.Success((await response.Content.ReadFromJsonAsync<CustomerResponse>(_json))!);
+            var envelope = await response.Content.ReadFromJsonAsync<ApiResponse<CustomerResponse>>(_json);
+            return ApiResult<CustomerResponse>.Success(envelope!.Data!);
         } catch (Exception ex) { return ApiResult<CustomerResponse>.Failure(ex.Message); }
     }
 
@@ -39,7 +40,8 @@ public class CustomerService {
             var response = await _http.PutAsJsonAsync($"api/v1/customers/{id}", request, _json);
             if (!response.IsSuccessStatusCode)
                 return ApiResult<CustomerResponse>.Failure(ApiErrorParser.Extract(await response.Content.ReadAsStringAsync()));
-            return ApiResult<CustomerResponse>.Success((await response.Content.ReadFromJsonAsync<CustomerResponse>(_json))!);
+            var envelope = await response.Content.ReadFromJsonAsync<ApiResponse<CustomerResponse>>(_json);
+            return ApiResult<CustomerResponse>.Success(envelope!.Data!);
         } catch (Exception ex) { return ApiResult<CustomerResponse>.Failure(ex.Message); }
     }
 

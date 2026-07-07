@@ -20,7 +20,7 @@ public class OrderEntityTest {
         order.OrderNumber.Should().Be(42);
         order.Status.Should().Be(OrderStatus.PENDING);
         order.Subtotal.Should().Be(0);
-        order.Discount.Should().Be(0);
+        order.DiscountPercentage.Should().Be(0);
         order.Total.Should().Be(0);
         order.OrderItems.Should().BeEmpty();
     }
@@ -38,7 +38,7 @@ public class OrderEntityTest {
         order.OrderItems.Should().HaveCount(1);
         order.Subtotal.Should().Be(20.00m);
         order.Total.Should().Be(20.00m);
-        order.Discount.Should().Be(0);
+        order.DiscountPercentage.Should().Be(0);
     }
 
     [Fact]
@@ -48,7 +48,7 @@ public class OrderEntityTest {
         var act = () => order.AddSandwich(Guid.NewGuid(), 20.00m);
 
         act.Should().Throw<DomainException>()
-           .WithMessage("*sanduíche*");
+           .WithMessage("*sandwich*");
     }
 
     [Fact]
@@ -82,7 +82,7 @@ public class OrderEntityTest {
         var act = () => order.AddSideDish(Guid.NewGuid(), SideDishCategory.FRIES, 5.00m);
 
         act.Should().Throw<DomainException>()
-           .WithMessage("*sanduíche*");
+           .WithMessage("*sandwich*");
     }
 
     [Fact]
@@ -126,7 +126,7 @@ public class OrderEntityTest {
         order.AddSideDish(Guid.NewGuid(), SideDishCategory.FRIES, 5.00m);
 
         order.Subtotal.Should().Be(25.00m);
-        order.Discount.Should().Be(10m);
+        order.DiscountPercentage.Should().Be(10m);
         order.Total.Should().Be(22.50m);
     }
 
@@ -137,7 +137,7 @@ public class OrderEntityTest {
         order.AddSideDish(Guid.NewGuid(), SideDishCategory.DRINK, 4.00m);
 
         order.Subtotal.Should().Be(24.00m);
-        order.Discount.Should().Be(15m);
+        order.DiscountPercentage.Should().Be(15m);
         order.Total.Should().Be(20.40m);
     }
 
@@ -149,7 +149,7 @@ public class OrderEntityTest {
         order.AddSideDish(Guid.NewGuid(), SideDishCategory.DRINK, 4.00m);
 
         order.Subtotal.Should().Be(29.00m);
-        order.Discount.Should().Be(20m);
+        order.DiscountPercentage.Should().Be(20m);
         order.Total.Should().Be(23.20m);
     }
 
@@ -157,7 +157,7 @@ public class OrderEntityTest {
     public void AddSandwich_NoSideDishes_ZeroDiscount() {
         var order = BuildOrderWithSandwich(30.00m);
 
-        order.Discount.Should().Be(0);
+        order.DiscountPercentage.Should().Be(0);
         order.Total.Should().Be(order.Subtotal);
     }
 
@@ -181,7 +181,7 @@ public class OrderEntityTest {
         var act = () => order.Confirm();
 
         act.Should().Throw<DomainException>()
-           .WithMessage("*vazio*");
+           .WithMessage("*empty*");
     }
 
     [Fact]
@@ -235,7 +235,7 @@ public class OrderEntityTest {
         var act = () => order.Cancel();
 
         act.Should().Throw<DomainException>()
-           .WithMessage("*cancelado*");
+           .WithMessage("*transition*");
     }
 
     #endregion

@@ -47,8 +47,6 @@ public class DeleteOrderUseCaseTest {
     private DeleteOrderUseCase BuildUseCase(GoodHamburger.Domain.Repositories.IOrderRepository orderRepo) {
         return new DeleteOrderUseCase(
             orderRepo,
-            OrderItemRepositoryBuilder.Instance().Build(),
-            OrderSideDishesRepositoryBuilder.Instance().Build(),
             UnitOfWorkBuilder.Instance().Build(),
             NullLogger<DeleteOrderUseCase>.Instance);
     }

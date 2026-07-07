@@ -13,15 +13,15 @@ public class OrderService {
 
     public async Task<ApiResult<PagedResponse<OrderResponse>>> GetAllAsync(int page = 1, int pageSize = 10) {
         try {
-            var result = await _http.GetFromJsonAsync<PagedResponse<OrderResponse>>($"api/v1/orders?page={page}&pageSize={pageSize}", _json);
-            return ApiResult<PagedResponse<OrderResponse>>.Success(result!);
+            var result = await _http.GetFromJsonAsync<ApiResponse<PagedResponse<OrderResponse>>>($"api/v1/orders?page={page}&pageSize={pageSize}", _json);
+            return ApiResult<PagedResponse<OrderResponse>>.Success(result!.Data!);
         } catch (Exception ex) { return ApiResult<PagedResponse<OrderResponse>>.Failure(ex.Message); }
     }
 
     public async Task<ApiResult<OrderResponse>> GetByIdAsync(Guid id) {
         try {
-            var result = await _http.GetFromJsonAsync<OrderResponse>($"api/v1/orders/{id}", _json);
-            return ApiResult<OrderResponse>.Success(result!);
+            var result = await _http.GetFromJsonAsync<ApiResponse<OrderResponse>>($"api/v1/orders/{id}", _json);
+            return ApiResult<OrderResponse>.Success(result!.Data!);
         } catch (Exception ex) { return ApiResult<OrderResponse>.Failure(ex.Message); }
     }
 
@@ -30,7 +30,8 @@ public class OrderService {
             var response = await _http.PostAsJsonAsync("api/v1/orders", request, _json);
             if (!response.IsSuccessStatusCode)
                 return ApiResult<OrderResponse>.Failure(ApiErrorParser.Extract(await response.Content.ReadAsStringAsync()));
-            return ApiResult<OrderResponse>.Success((await response.Content.ReadFromJsonAsync<OrderResponse>(_json))!);
+            var envelope = await response.Content.ReadFromJsonAsync<ApiResponse<OrderResponse>>(_json);
+            return ApiResult<OrderResponse>.Success(envelope!.Data!);
         } catch (Exception ex) { return ApiResult<OrderResponse>.Failure(ex.Message); }
     }
 
@@ -39,7 +40,8 @@ public class OrderService {
             var response = await _http.PutAsync($"api/v1/orders/{id}/confirm", null);
             if (!response.IsSuccessStatusCode)
                 return ApiResult<OrderResponse>.Failure(ApiErrorParser.Extract(await response.Content.ReadAsStringAsync()));
-            return ApiResult<OrderResponse>.Success((await response.Content.ReadFromJsonAsync<OrderResponse>(_json))!);
+            var envelope = await response.Content.ReadFromJsonAsync<ApiResponse<OrderResponse>>(_json);
+            return ApiResult<OrderResponse>.Success(envelope!.Data!);
         } catch (Exception ex) { return ApiResult<OrderResponse>.Failure(ex.Message); }
     }
 
@@ -48,7 +50,8 @@ public class OrderService {
             var response = await _http.PutAsync($"api/v1/orders/{id}/cancel", null);
             if (!response.IsSuccessStatusCode)
                 return ApiResult<OrderResponse>.Failure(ApiErrorParser.Extract(await response.Content.ReadAsStringAsync()));
-            return ApiResult<OrderResponse>.Success((await response.Content.ReadFromJsonAsync<OrderResponse>(_json))!);
+            var envelope = await response.Content.ReadFromJsonAsync<ApiResponse<OrderResponse>>(_json);
+            return ApiResult<OrderResponse>.Success(envelope!.Data!);
         } catch (Exception ex) { return ApiResult<OrderResponse>.Failure(ex.Message); }
     }
 

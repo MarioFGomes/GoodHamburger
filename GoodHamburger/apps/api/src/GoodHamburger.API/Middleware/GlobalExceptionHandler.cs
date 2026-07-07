@@ -1,8 +1,9 @@
-﻿using System.Text.Json;
+using System.Text.Json;
 using FluentValidation;
+using GoodHamburger.Application.DTOs.Responses;
 using GoodHamburger.Application.Exceptions;
 using GoodHamburger.Domain.Exceptions;
-using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 
 namespace GoodHamburger.API.Middleware;
 
@@ -33,56 +34,57 @@ public class GlobalExceptionHandler {
 
         if (context.Response.HasStarted) {
             _logger.LogError(exception,
-                "Response já iniciada — não foi possível escrever ProblemDetails.");
-            throw exception;
+                "Response has already started — unable to write the error envelope.");
+            System.Runtime.ExceptionServices.ExceptionDispatchInfo.Capture(exception).Throw();
         }
 
-        var (status, title) = MapStatus(exception);
+        var (status, detail) = MapStatus(exception);
 
         if (status >= 500)
-            _logger.LogError(exception, "Erro não tratado: {Message}", exception.Message);
+            _logger.LogError(exception, "Unhandled error: {Message}", exception.Message);
         else
             _logger.LogWarning(
-                "Falha tratada. Status={Status}, Type={ExceptionType}",
+                "Handled failure. Status={Status}, Type={ExceptionType}",
                 status, exception.GetType().Name);
 
-        var problem = new ProblemDetails {
-            Status = status,
-            Title = title,
-            Detail = status == StatusCodes.Status500InternalServerError && !_env.IsDevelopment()
-                ? "Ocorreu um erro interno. Contate o suporte."
-                : exception.Message,
-            Type = $"https://httpstatuses.com/{status}",
-            Instance = context.Request.Path
-        };
+        var message = detail ?? (status == StatusCodes.Status500InternalServerError && !_env.IsDevelopment()
+            ? "An internal error occurred. Contact support with the traceId."
+            : exception.Message);
 
-      
-        if (exception is ValidationException ve) {
-            problem.Extensions["errors"] = ve.Errors
-                .GroupBy(e => e.PropertyName)
-                .ToDictionary(g => g.Key, g => g.Select(e => e.ErrorMessage).ToArray());
-        }
+        var errors = exception is ValidationException ve
+            ? ve.Errors.Select(e => $"{e.PropertyName}: {e.ErrorMessage}").ToList()
+            : null;
 
-        problem.Extensions["traceId"] = context.TraceIdentifier;
+        var apiResponse = ApiResponse<object>.Fail(message, status, errors, context.TraceIdentifier);
 
         context.Response.StatusCode = status;
-        context.Response.ContentType = "application/problem+json";
+        context.Response.ContentType = "application/json";
 
-        var json = JsonSerializer.Serialize(problem, new JsonSerializerOptions {
-            PropertyNamingPolicy = JsonNamingPolicy.CamelCase
-        });
+        // Same options as MVC — error payloads can never drift from success payloads.
+        var json = JsonSerializer.Serialize(apiResponse, ApiJsonOptions.Default);
 
         await context.Response.WriteAsync(json);
     }
 
-    private static (int status, string title) MapStatus(Exception ex) => ex switch {
-        ValidationException =>                  (StatusCodes.Status400BadRequest, "Erro de validação."),
-        NotFoundException =>                    (StatusCodes.Status404NotFound, "Recurso não encontrado."),
-        ResourceAlreadyExists =>                (StatusCodes.Status409Conflict, "Recurso já existe."),
-        BusinessRuleException =>                (StatusCodes.Status422UnprocessableEntity, "Regra de negócio violada."),
-        DomainException =>                      (StatusCodes.Status422UnprocessableEntity, "Regra de domínio violada."),
-        UnauthorizedAccessException =>          (StatusCodes.Status401Unauthorized, "Acesso não autorizado."),
-       
-        _ => (StatusCodes.Status500InternalServerError, "Erro interno do servidor.")
+    private static (int status, string? detail) MapStatus(Exception ex) => ex switch {
+        ValidationException =>              (StatusCodes.Status400BadRequest, null),
+        NotFoundException =>                (StatusCodes.Status404NotFound, null),
+        ResourceAlreadyExists =>            (StatusCodes.Status409Conflict, null),
+        BusinessRuleException =>            (StatusCodes.Status422UnprocessableEntity, null),
+        DomainException =>                  (StatusCodes.Status422UnprocessableEntity, null),
+        InvalidCredentialsException =>      (StatusCodes.Status401Unauthorized, null),
+        UnauthorizedAccessException =>      (StatusCodes.Status401Unauthorized, null),
+
+        // Optimistic concurrency: the row changed (or vanished) between read
+        // and write. The client should refetch and retry.
+        DbUpdateConcurrencyException =>     (StatusCodes.Status409Conflict,
+                                             "The resource was modified or removed by another request. Refresh and try again."),
+
+        // Safety net: unique index / FK violations that slipped past the
+        // use-case checks (e.g. two concurrent inserts with the same phone).
+        DbUpdateException =>                (StatusCodes.Status409Conflict,
+                                             "The operation violates a data integrity constraint (duplicate or referenced record)."),
+
+        _ => (StatusCodes.Status500InternalServerError, null)
     };
 }

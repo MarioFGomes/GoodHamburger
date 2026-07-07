@@ -1,4 +1,5 @@
-﻿using GoodHamburger.Application.UseCases.Customer;
+using GoodHamburger.Application.UseCases.Auth;
+using GoodHamburger.Application.UseCases.Customer;
 using GoodHamburger.Application.UseCases.Menu;
 using GoodHamburger.Application.UseCases.Order;
 using GoodHamburger.Application.UseCases.SideDishes;
@@ -27,6 +28,9 @@ public static class ApplicationBootstrapper {
                 .AddScoped<IGetOrderByIdUseCase, GetOrderByIdUseCase>()
                 .AddScoped<IGetAllOrdersUseCase, GetAllOrdersUseCase>()
                 .AddScoped<IConfirmOrderUseCase, ConfirmOrderUseCase>()
+                .AddScoped<IPayOrderUseCase, PayOrderUseCase>()
+                .AddScoped<IMarkOrderReadyUseCase, MarkOrderReadyUseCase>()
+                .AddScoped<IDeliverOrderUseCase, DeliverOrderUseCase>()
                 .AddScoped<ICancelOrderUseCase, CancelOrderUseCase>()
                 .AddScoped<IDeleteOrderUseCase, DeleteOrderUseCase>();
 
@@ -36,7 +40,8 @@ public static class ApplicationBootstrapper {
                 .AddScoped<IUpdateSideDishesUseCase, UpdateSideDishesUseCase>()
                 .AddScoped<IDeleteSideDishesUseCase, DeleteSideDishesUseCase>();
 
-
+        services.AddScoped<IRegisterUserUseCase, RegisterUserUseCase>()
+                .AddScoped<ILoginUseCase, LoginUseCase>();
 
         services.AddValidatorsFromAssembly(Assembly.GetExecutingAssembly());
 
